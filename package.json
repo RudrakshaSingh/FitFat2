@@ -10,6 +10,7 @@
     "deploy": "npx expo export -p web && npx eas-cli@latest deploy"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
     "expo": "^54.0.1",
     "expo-constants": "~18.0.8",
     "expo-linking": "~8.0.7",
