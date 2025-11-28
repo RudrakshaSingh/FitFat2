@@ -3,6 +3,7 @@ import { Link, useRouter } from "expo-router";
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -25,6 +26,10 @@ export default function Page() {
   // Handle the submission of the sign-in form
   const onSignInPress = async () => {
     if (!isLoaded) return;
+    if (!emailAddress || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
 
     // Start the sign-in process using the email and password provided
     try {
@@ -47,6 +52,8 @@ export default function Page() {
       // See https://clerk.com/docs/guides/development/custom-flows/error-handling
       // for more info on error handling
       console.error(JSON.stringify(err, null, 2));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -56,7 +63,11 @@ export default function Page() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1 "
       >
-        <View className="flex-1 px-6">
+        <ScrollView
+          className="flex-1 px-6"
+          contentContainerStyle={{ paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header section */}
           <View className="flex-1  justify-center">
             {/* Logo / Branding */}
@@ -78,7 +89,7 @@ export default function Page() {
               </LinearGradient>
 
               <Text className="text-3xl font-bold text-gray-900 mb-2">
-                FitTracker
+                FitFat
               </Text>
 
               <Text className="text-lg text-gray-600 text-center">
@@ -171,14 +182,22 @@ export default function Page() {
             {/* google sign in */}
             <GoogleSignIn />
 
-            {/* footer */}
-            <View className="flex-row justify-center">
-              <Text className="text-gray-600 text-center text-sm">
-                Start your fitness journey today!
-              </Text>
+            {/* Sign up link */}
+            <View className="flex-row justify-center items-center mt-6">
+              <Text className="text-gray-600">New to FitFat? </Text>
+              <Link href="/sign-up">
+                <Text className="text-blue-600 font-semibold">Sign Up</Text>
+              </Link>
             </View>
           </View>
-        </View>
+
+          {/* footer */}
+          <View className="flex-row justify-center">
+            <Text className="text-gray-600 text-center text-sm">
+              Start your fitness journey today!
+            </Text>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

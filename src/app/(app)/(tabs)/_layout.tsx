@@ -4,7 +4,14 @@ import Entypo from "@expo/vector-icons/Entypo";
 
 function Layout() {
   return (
-    <Tabs>
+    <Tabs
+      screenOptions={{
+        tabBarStyle: {
+          paddingBottom: 8,
+          height: 56,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
