@@ -1,6 +1,7 @@
 import { Link } from "expo-router";
 import React from "react";
-import { SafeAreaView, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Page() {
   return (
@@ -25,7 +26,7 @@ function Content() {
             </Text>
 
             <Text className="mx-auto max-w-[700px] text-lg text-center md:text-xl">
-              This template sets up Expo and Tailwind (NativeWind)
+              This sets up Expo and Tailwind (NativeWind)
             </Text>
 
             <View className="gap-4">

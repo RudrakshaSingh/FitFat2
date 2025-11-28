@@ -6,7 +6,7 @@ export default function Layout() {
   return (
     <Tabs>
       <Tabs.Screen
-        name="index"
+        name="(app)/index"
         options={{
           title: "Home",
           headerShown: false,
@@ -16,7 +16,7 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="(app)/profile"
         options={{
           title: "Profile",
           headerShown: false,
@@ -26,7 +26,7 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="(app)/history"
         options={{
           title: "History",
           headerShown: false,
