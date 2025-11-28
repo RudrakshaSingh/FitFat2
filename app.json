@@ -2,9 +2,15 @@
   "scheme": "acme",
   "userInterfaceStyle": "automatic",
   "orientation": "default",
+  "name": "FitFat2",
+  "slug": "FitFat2",
+
+  "icon": "./assets/app.png",
+
   "web": {
     "output": "static"
   },
+
   "plugins": [
     [
       "expo-router",
@@ -12,7 +18,5 @@
         "origin": "https://n"
       }
     ]
-  ],
-  "name": "FitFat2",
-  "slug": "FitFat2"
+  ]
 }
