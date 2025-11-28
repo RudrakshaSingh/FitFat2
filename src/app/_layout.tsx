@@ -1,11 +1,11 @@
 import "../global.css";
-import { Slot, Stack, Tabs } from "expo-router";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { Slot } from "expo-router";
+import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { ClerkProvider } from "@clerk/clerk-expo";
 
 export default function Layout() {
   return (
-    <ClerkProvider>
+    <ClerkProvider tokenCache={tokenCache}>
       <Slot />
     </ClerkProvider>
   );
