@@ -187,3 +187,39 @@ export type Slug = {
 
 export type AllSanitySchemaTypes = Workout | Exercise | SanityImageCrop | SanityImageHotspot | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint | Slug;
 export declare const internalGroqTypeReferenceTo: unique symbol;
+// Source: ../src/app/(app)/(tabs)/exercises.tsx
+// Variable: exerciseQuery
+// Query: *[_type == "exercise"]
+export type ExerciseQueryResult = Array<{
+  _id: string;
+  _type: "exercise";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name?: string;
+  description?: string;
+  difficulty?: "advanced" | "beginner" | "intermediate";
+  image?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  videoUrl?: string;
+  isActive?: boolean;
+}>;
+
+// Query TypeMap
+import "@sanity/client";
+declare module "@sanity/client" {
+  interface SanityQueries {
+    "*[_type == \"exercise\"]": ExerciseQueryResult;
+  }
+}

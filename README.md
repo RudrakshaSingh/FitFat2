@@ -33,3 +33,7 @@ FitFat2 expands on the first version by offering smoother navigation, improved p
 use npx sanity schema extract
 whenever you change sanity schema
 npx sanity typegen generate
+
+made automatic cmd npm run typegen in cd sanity
+
+run this even after defining query grok and need to create query with unique name each type

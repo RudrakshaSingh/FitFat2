@@ -229,7 +229,7 @@ export default function SignUpScreen() {
           {/* main */}
           <View className="flex-1 justify-center">
             {/* Logo / Branding */}
-            <View className="items-center mb-8">
+            <View className="items-center mb-8 mt-4">
               <LinearGradient
                 colors={["#2563eb", "#9333ea"]} // blue-600 → purple-600
                 start={{ x: 0, y: 0 }}

@@ -23,7 +23,7 @@ function Layout() {
         }}
       />
       <Tabs.Screen
-        name="exercises"
+        name="exercise"
         options={{
           title: "Exercises",
           headerShown: false,
