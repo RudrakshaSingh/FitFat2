@@ -61,10 +61,10 @@ export default function Page() {
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 "
+        style={{ flex: 1 }}
       >
         <ScrollView
-          className="flex-1 px-6"
+          style={{ flex: 1, paddingHorizontal: 24 }}
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >

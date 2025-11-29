@@ -12,6 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 
+const MAX_WEIGHT_KG = 200;
+const MAX_WEIGHT_LBS = 440.9; // 200 kg in lbs
+const MAX_HEIGHT_CM = 365.8; // 12 feet in cm
+const MAX_HEIGHT_FEET = 12;
+const MAX_AGE = 150;
+
 export default function Profile() {
   const { signOut } = useAuth();
   const { user } = useUser();
@@ -20,7 +26,10 @@ export default function Profile() {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [weightKg, setWeightKg] = useState("");
+  const [weightLbs, setWeightLbs] = useState("");
   const [heightCm, setHeightCm] = useState("");
+  const [heightFeet, setHeightFeet] = useState("");
+  const [heightInches, setHeightInches] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -30,9 +39,117 @@ export default function Profile() {
       setAge((user.unsafeMetadata.age as string) || "");
       setGender((user.unsafeMetadata.gender as "male" | "female") || null);
       setWeightKg((user.unsafeMetadata.weightKg as string) || "");
+      setWeightLbs((user.unsafeMetadata.weightLbs as string) || "");
       setHeightCm((user.unsafeMetadata.heightCm as string) || "");
+      setHeightFeet((user.unsafeMetadata.heightFeet as string) || "");
+      setHeightInches((user.unsafeMetadata.heightInches as string) || "");
     }
   }, [user]);
+
+  // Convert kg to lbs with limit check
+  const handleWeightKgChange = (value: string) => {
+    if (value && !isNaN(Number(value))) {
+      const kg = Number(value);
+      if (kg > MAX_WEIGHT_KG) {
+        Alert.alert(
+          "Limit Exceeded",
+          `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
+            1
+          )} lbs)`
+        );
+        return;
+      }
+      setWeightKg(value);
+      const lbs = (kg * 2.20462).toFixed(1);
+      setWeightLbs(lbs);
+    } else {
+      setWeightKg(value);
+      setWeightLbs("");
+    }
+  };
+
+  // Convert lbs to kg with limit check
+  const handleWeightLbsChange = (value: string) => {
+    if (value && !isNaN(Number(value))) {
+      const lbs = Number(value);
+      if (lbs > MAX_WEIGHT_LBS) {
+        Alert.alert(
+          "Limit Exceeded",
+          `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
+            1
+          )} lbs)`
+        );
+        return;
+      }
+      setWeightLbs(value);
+      const kg = (lbs / 2.20462).toFixed(1);
+      setWeightKg(kg);
+    } else {
+      setWeightLbs(value);
+      setWeightKg("");
+    }
+  };
+
+  // Convert cm to ft/in with limit check
+  const handleHeightCmChange = (value: string) => {
+    if (value && !isNaN(Number(value))) {
+      const cm = Number(value);
+      if (cm > MAX_HEIGHT_CM) {
+        Alert.alert(
+          "Limit Exceeded",
+          `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
+            1
+          )} cm)`
+        );
+        return;
+      }
+      setHeightCm(value);
+      const totalInches = cm / 2.54;
+      const feet = Math.floor(totalInches / 12);
+      const inches = Math.round(totalInches % 12);
+      setHeightFeet(feet.toString());
+      setHeightInches(inches.toString());
+    } else {
+      setHeightCm(value);
+      setHeightFeet("");
+      setHeightInches("");
+    }
+  };
+
+  // Convert ft/in to cm with limit check - treating empty inches as 0
+  const handleHeightFtInChange = (feet: string, inches: string) => {
+    if (feet || inches) {
+      const f = Number(feet) || 0;
+      const i = Number(inches) || 0; // Treat empty as 0
+
+      if (f > MAX_HEIGHT_FEET) {
+        Alert.alert(
+          "Limit Exceeded",
+          `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
+            1
+          )} cm)`
+        );
+        return;
+      }
+
+      const totalInches = f * 12 + i;
+      const cm = totalInches * 2.54;
+
+      if (cm > MAX_HEIGHT_CM) {
+        Alert.alert(
+          "Limit Exceeded",
+          `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
+            1
+          )} cm)`
+        );
+        return;
+      }
+
+      setHeightCm(cm.toFixed(1));
+    } else {
+      setHeightCm("");
+    }
+  };
 
   const validateFields = () => {
     if (!name.trim()) {
@@ -43,6 +160,10 @@ export default function Profile() {
     const ageNum = Number(age);
     if (!age.trim() || isNaN(ageNum) || ageNum <= 0) {
       Alert.alert("Validation Error", "Please enter a valid age");
+      return false;
+    }
+    if (ageNum > MAX_AGE) {
+      Alert.alert("Validation Error", `Maximum age is ${MAX_AGE} years`);
       return false;
     }
 
@@ -56,10 +177,28 @@ export default function Profile() {
       Alert.alert("Validation Error", "Please enter a valid weight");
       return false;
     }
+    if (kg > MAX_WEIGHT_KG) {
+      Alert.alert(
+        "Validation Error",
+        `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
+          1
+        )} lbs)`
+      );
+      return false;
+    }
 
     const cm = Number(heightCm);
     if (!heightCm.trim() || isNaN(cm) || cm <= 0) {
       Alert.alert("Validation Error", "Please enter a valid height");
+      return false;
+    }
+    if (cm > MAX_HEIGHT_CM) {
+      Alert.alert(
+        "Validation Error",
+        `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
+          1
+        )} cm)`
+      );
       return false;
     }
 
@@ -73,12 +212,6 @@ export default function Profile() {
 
     setIsSaving(true);
     try {
-      // Convert kg to lbs and cm to feet/inches for storage
-      const weightLbs = (Number(weightKg) / 0.453592).toFixed(1);
-      const totalInches = Number(heightCm) / 2.54;
-      const heightFeet = Math.floor(totalInches / 12).toString();
-      const heightInches = Math.round(totalInches % 12).toString();
-
       await user?.update({
         unsafeMetadata: {
           ...user.unsafeMetadata,
@@ -89,7 +222,7 @@ export default function Profile() {
           weightLbs: weightLbs,
           heightCm: heightCm,
           heightFeet: heightFeet,
-          heightInches: heightInches,
+          heightInches: heightInches || "0", // Save as "0" if empty
         },
       });
       setIsEditing(false);
@@ -109,7 +242,10 @@ export default function Profile() {
       setAge((user.unsafeMetadata.age as string) || "");
       setGender((user.unsafeMetadata.gender as "male" | "female") || null);
       setWeightKg((user.unsafeMetadata.weightKg as string) || "");
+      setWeightLbs((user.unsafeMetadata.weightLbs as string) || "");
       setHeightCm((user.unsafeMetadata.heightCm as string) || "");
+      setHeightFeet((user.unsafeMetadata.heightFeet as string) || "");
+      setHeightInches((user.unsafeMetadata.heightInches as string) || "");
     }
   };
 
@@ -217,15 +353,30 @@ export default function Profile() {
 
             {/* Age */}
             <View className="mb-4">
-              <Text className="text-sm font-semibold text-gray-600 mb-2">
-                Age
-              </Text>
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-sm font-semibold text-gray-600">Age</Text>
+                {isEditing && (
+                  <Text className="text-xs text-gray-500">
+                    Max: {MAX_AGE} years
+                  </Text>
+                )}
+              </View>
               {isEditing ? (
                 <View className="flex-row items-center bg-gray-50 rounded-xl p-4 border border-gray-200">
                   <Ionicons name="calendar-outline" size={20} color="#9333ea" />
                   <TextInput
                     value={age}
-                    onChangeText={setAge}
+                    onChangeText={(value) => {
+                      const ageNum = Number(value);
+                      if (value && !isNaN(ageNum) && ageNum > MAX_AGE) {
+                        Alert.alert(
+                          "Limit Exceeded",
+                          `Maximum age is ${MAX_AGE} years`
+                        );
+                        return;
+                      }
+                      setAge(value);
+                    }}
                     placeholder="Enter your age"
                     placeholderTextColor="#9ca3af"
                     keyboardType="numeric"
@@ -321,26 +472,66 @@ export default function Profile() {
 
             {/* Weight */}
             <View className="mb-4">
-              <Text className="text-sm font-semibold text-gray-600 mb-2">
-                Weight
-              </Text>
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-sm font-semibold text-gray-600">
+                  Weight
+                </Text>
+                {isEditing && (
+                  <Text className="text-xs text-gray-500">
+                    Max: {MAX_WEIGHT_KG} kg / {MAX_WEIGHT_LBS.toFixed(0)} lbs
+                  </Text>
+                )}
+              </View>
               {isEditing ? (
-                <View className="flex-row items-center bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <Ionicons name="barbell-outline" size={20} color="#9333ea" />
-                  <TextInput
-                    value={weightKg}
-                    onChangeText={setWeightKg}
-                    placeholder="Enter weight"
-                    placeholderTextColor="#9ca3af"
-                    keyboardType="decimal-pad"
-                    className="flex-1 ml-3 text-gray-800"
-                  />
-                  <Text className="text-gray-500 font-bold">kg</Text>
+                <View className="flex-row gap-3">
+                  {/* Weight in KG */}
+                  <View className="flex-1">
+                    <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
+                      <Ionicons
+                        name="barbell-outline"
+                        size={18}
+                        color="#9333ea"
+                      />
+                      <TextInput
+                        value={weightKg}
+                        onChangeText={handleWeightKgChange}
+                        placeholder="Weight"
+                        placeholderTextColor="#9ca3af"
+                        keyboardType="decimal-pad"
+                        className="flex-1 ml-2 text-gray-800"
+                      />
+                      <Text className="text-gray-500 font-medium ml-1">kg</Text>
+                    </View>
+                  </View>
+
+                  {/* Weight in LBS */}
+                  <View className="flex-1">
+                    <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
+                      <Ionicons
+                        name="barbell-outline"
+                        size={18}
+                        color="#9333ea"
+                      />
+                      <TextInput
+                        value={weightLbs}
+                        onChangeText={handleWeightLbsChange}
+                        placeholder="Weight"
+                        placeholderTextColor="#9ca3af"
+                        keyboardType="decimal-pad"
+                        className="flex-1 ml-2 text-gray-800"
+                      />
+                      <Text className="text-gray-500 font-medium ml-1">
+                        lbs
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               ) : (
                 <View className="bg-gray-50 rounded-xl p-4">
                   <Text className="text-lg text-gray-800">
-                    {weightKg ? `${weightKg} kg` : "Not set"}
+                    {weightKg && weightLbs
+                      ? `${weightKg} kg / ${weightLbs} lbs`
+                      : "Not set"}
                   </Text>
                 </View>
               )}
@@ -348,26 +539,91 @@ export default function Profile() {
 
             {/* Height */}
             <View>
-              <Text className="text-sm font-semibold text-gray-600 mb-2">
-                Height
-              </Text>
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-sm font-semibold text-gray-600">
+                  Height
+                </Text>
+                {isEditing && (
+                  <Text className="text-xs text-gray-500">
+                    Max: {MAX_HEIGHT_FEET} ft / {MAX_HEIGHT_CM.toFixed(0)} cm
+                  </Text>
+                )}
+              </View>
               {isEditing ? (
-                <View className="flex-row items-center bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <Ionicons name="resize-outline" size={20} color="#9333ea" />
-                  <TextInput
-                    value={heightCm}
-                    onChangeText={setHeightCm}
-                    placeholder="Enter height"
-                    placeholderTextColor="#9ca3af"
-                    keyboardType="decimal-pad"
-                    className="flex-1 ml-3 text-gray-800"
-                  />
-                  <Text className="text-gray-500 font-bold">cm</Text>
+                <View>
+                  {/* Height in CM */}
+                  <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200 mb-3">
+                    <Ionicons name="resize-outline" size={18} color="#9333ea" />
+                    <TextInput
+                      value={heightCm}
+                      onChangeText={handleHeightCmChange}
+                      placeholder="Height"
+                      placeholderTextColor="#9ca3af"
+                      keyboardType="decimal-pad"
+                      className="flex-1 ml-2 text-gray-800"
+                    />
+                    <Text className="text-gray-500 font-medium ml-1">cm</Text>
+                  </View>
+
+                  {/* Height in FT/IN */}
+                  <View className="flex-row gap-3">
+                    <View className="flex-1">
+                      <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
+                        <Ionicons
+                          name="resize-outline"
+                          size={18}
+                          color="#9333ea"
+                        />
+                        <TextInput
+                          value={heightFeet}
+                          onChangeText={(value) => {
+                            setHeightFeet(value);
+                            handleHeightFtInChange(value, heightInches);
+                          }}
+                          placeholder="Feet"
+                          placeholderTextColor="#9ca3af"
+                          keyboardType="numeric"
+                          maxLength={2}
+                          className="flex-1 ml-2 text-gray-800"
+                        />
+                        <Text className="text-gray-500 font-medium ml-1">
+                          ft
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View className="flex-1">
+                      <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
+                        <Ionicons
+                          name="resize-outline"
+                          size={18}
+                          color="#9333ea"
+                        />
+                        <TextInput
+                          value={heightInches}
+                          onChangeText={(value) => {
+                            setHeightInches(value);
+                            handleHeightFtInChange(heightFeet, value);
+                          }}
+                          placeholder="Inches"
+                          placeholderTextColor="#9ca3af"
+                          keyboardType="numeric"
+                          maxLength={2}
+                          className="flex-1 ml-2 text-gray-800"
+                        />
+                        <Text className="text-gray-500 font-medium ml-1">
+                          in
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
                 </View>
               ) : (
                 <View className="bg-gray-50 rounded-xl p-4">
                   <Text className="text-lg text-gray-800">
-                    {heightCm ? `${heightCm} cm` : "Not set"}
+                    {heightCm && heightFeet && heightInches
+                      ? `${heightCm} cm / ${heightFeet}'${heightInches}"`
+                      : "Not set"}
                   </Text>
                 </View>
               )}

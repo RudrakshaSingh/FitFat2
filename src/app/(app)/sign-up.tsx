@@ -102,10 +102,10 @@ export default function SignUpScreen() {
       <SafeAreaView className="flex-1 bg-gray-50">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 "
+          style={{ flex: 1 }}
         >
           <ScrollView
-            className="flex-1 px-6"
+            style={{ flex: 1, paddingHorizontal: 24 }}
             contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
           >
@@ -219,10 +219,10 @@ export default function SignUpScreen() {
     <SafeAreaView className="flex-1 bg-gray-50">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 "
+        style={{ flex: 1 }}
       >
         <ScrollView
-          className="flex-1 px-6"
+          style={{ flex: 1, paddingHorizontal: 24 }}
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
