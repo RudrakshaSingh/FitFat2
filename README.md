@@ -29,3 +29,7 @@ FitFat2 expands on the first version by offering smoother navigation, improved p
 - ☁️ Cloud image handling with Cloudinary
 - 🧩 Dynamic CMS-driven content (Sanity)
 - 💾 Local caching for faster performance
+
+use npx sanity schema extract
+whenever you change sanity schema
+npx sanity typegen generate
