@@ -59,7 +59,6 @@ function ExerciseDetail() {
         },
         body: JSON.stringify({ exerciseName: exercise.name }),
       });
-      console.log("hii", reponse);
 
       if (!reponse.ok) {
         throw new Error("Failed to fetch AI guidance. Please try again.");

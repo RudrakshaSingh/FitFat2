@@ -30,7 +30,7 @@ function Layout() {
   }
 
   return (
-    <SafeAreaView className="flex-1" edges={[]}>
+    <>
       <StatusBar style="auto" />
       <Stack>
         {/* Protected routes - only accessible when signed in */}
@@ -41,7 +41,10 @@ function Layout() {
             name="exercise-detail"
             options={{
               headerShown: false,
-              presentation: "formSheet",
+              presentation: "modal",
+              gestureEnabled: true,
+              animation: "slide_from_bottom",
+              animationTypeForReplace: "push",
             }}
           />
         </Stack.Protected>
@@ -52,7 +55,7 @@ function Layout() {
           <Stack.Screen name="sign-up" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
-    </SafeAreaView>
+    </>
   );
 }
 
