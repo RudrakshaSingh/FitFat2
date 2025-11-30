@@ -1,7 +1,8 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OpenAI_API_KEY,
+const client = new OpenAI({
+  apiKey: process.env.EXPO_PUBLIC_GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
 });
 
 export async function POST(request: Request) {
@@ -41,8 +42,8 @@ export async function POST(request: Request) {
   //   console.log(prompt);
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const response = await client.chat.completions.create({
+      model: "llama-3.1-8b-instant",
       messages: [{ role: "user", content: prompt }],
     });
 

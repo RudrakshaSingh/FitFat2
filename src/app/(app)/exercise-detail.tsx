@@ -19,7 +19,6 @@ import {
   getDifficultyText,
 } from "../components/ExerciseCard";
 import Markdown from "react-native-markdown-display";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 export const singleExerciseQuery = defineQuery(
   `*[_type == "exercise" && _id == $id][0]`
