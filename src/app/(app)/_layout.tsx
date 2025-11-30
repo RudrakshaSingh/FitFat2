@@ -2,6 +2,8 @@ import { Stack, useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { ActivityIndicator, View } from "react-native";
 import { useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function Layout() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -28,19 +30,29 @@ function Layout() {
   }
 
   return (
-    <Stack>
-      {/* Protected routes - only accessible when signed in */}
-      <Stack.Protected guard={isSignedIn}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      </Stack.Protected>
+    <SafeAreaView className="flex-1" edges={[]}>
+      <StatusBar style="auto" />
+      <Stack>
+        {/* Protected routes - only accessible when signed in */}
+        <Stack.Protected guard={isSignedIn}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="exercise-detail"
+            options={{
+              headerShown: false,
+              presentation: "formSheet",
+            }}
+          />
+        </Stack.Protected>
 
-      {/* Auth routes - only accessible when NOT signed in */}
-      <Stack.Protected guard={!isSignedIn}>
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-        <Stack.Screen name="sign-up" options={{ headerShown: false }} />
-      </Stack.Protected>
-    </Stack>
+        {/* Auth routes - only accessible when NOT signed in */}
+        <Stack.Protected guard={!isSignedIn}>
+          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          <Stack.Screen name="sign-up" options={{ headerShown: false }} />
+        </Stack.Protected>
+      </Stack>
+    </SafeAreaView>
   );
 }
 

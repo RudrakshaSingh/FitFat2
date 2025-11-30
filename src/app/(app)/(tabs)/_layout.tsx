@@ -7,7 +7,6 @@ function Layout() {
     <Tabs
       screenOptions={{
         tabBarStyle: {
-          paddingBottom: 8,
           height: 56,
         },
       }}
