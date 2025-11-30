@@ -29,7 +29,7 @@ export default function Exercises() {
     // Fetch exercises from Sanity
     try {
       const exercises = await client.fetch(exerciseQuery);
-      console.log("ex:", exercises);
+      // console.log("ex:", exercises);
 
       setExercises(exercises);
       setFilteredExercises(exercises);
@@ -95,9 +95,7 @@ export default function Exercises() {
         renderItem={({ item }) => (
           <ExerciseCard
             item={item}
-            onPress={() =>
-              router.push(`/exercise/exercise-detail?id=${item._id}`)
-            }
+            onPress={() => router.push(`exercise-detail?id=${item._id}`)}
           />
         )}
         refreshControl={
