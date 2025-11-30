@@ -8,7 +8,7 @@
   "icon": "./assets/app.png",
 
   "web": {
-    "output": "static"
+    "output": "server"
   },
 
   "plugins": [
