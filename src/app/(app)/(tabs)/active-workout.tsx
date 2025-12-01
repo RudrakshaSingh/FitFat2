@@ -39,6 +39,24 @@ export default function ActiveWorkout() {
     }, [workoutExercises.length, reset])
   );
 
+  useFocusEffect(
+    React.useCallback(() => {
+      // When entering this screen
+      StatusBar.setBarStyle("light-content");
+      if (Platform.OS === "android") {
+        StatusBar.setBackgroundColor("#1F2937");
+      }
+
+      return () => {
+        // When leaving this screen → restore your default look
+        StatusBar.setBarStyle("dark-content");
+        if (Platform.OS === "android") {
+          StatusBar.setBackgroundColor("#ffffff");
+        }
+      };
+    }, [])
+  );
+
   // Format stopwatch time
   const getWorkoutDuration = () => {
     return `${minutes.toString().padStart(2, "0")}:${seconds
@@ -66,8 +84,6 @@ export default function ActiveWorkout() {
 
   return (
     <View className="flex-1">
-      <StatusBar barStyle="light-content" backgroundColor="#1F2937" />
-
       {/* Top Safe Area */}
       <View
         className="bg-gray-800"

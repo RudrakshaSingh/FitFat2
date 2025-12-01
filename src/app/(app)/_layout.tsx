@@ -30,32 +30,29 @@ function Layout() {
   }
 
   return (
-    <>
-      <StatusBar style="auto" />
-      <Stack>
-        {/* Protected routes - only accessible when signed in */}
-        <Stack.Protected guard={isSignedIn}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="exercise-detail"
-            options={{
-              headerShown: false,
-              presentation: "modal",
-              gestureEnabled: true,
-              animation: "slide_from_bottom",
-              animationTypeForReplace: "push",
-            }}
-          />
-        </Stack.Protected>
+    <Stack>
+      {/* Protected routes - only accessible when signed in */}
+      <Stack.Protected guard={isSignedIn}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="exercise-detail"
+          options={{
+            headerShown: false,
+            presentation: "modal",
+            gestureEnabled: true,
+            animation: "slide_from_bottom",
+            animationTypeForReplace: "push",
+          }}
+        />
+      </Stack.Protected>
 
-        {/* Auth routes - only accessible when NOT signed in */}
-        <Stack.Protected guard={!isSignedIn}>
-          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-          <Stack.Screen name="sign-up" options={{ headerShown: false }} />
-        </Stack.Protected>
-      </Stack>
-    </>
+      {/* Auth routes - only accessible when NOT signed in */}
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+        <Stack.Screen name="sign-up" options={{ headerShown: false }} />
+      </Stack.Protected>
+    </Stack>
   );
 }
 

@@ -15,7 +15,7 @@ export default function Workout() {
       {/* Main Start Workout Screen */}
       <View className="flex-1 px-6">
         {/* Header */}
-        <View className="pt-8 pb-6">
+        <View className="pt-4 pb-6">
           <Text className="text-3xl font-bold text-gray-900 mb-2">
             Ready to Train?
           </Text>

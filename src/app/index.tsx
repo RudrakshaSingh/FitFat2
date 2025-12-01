@@ -9,7 +9,7 @@ export default function Start() {
 
   return (
     <View className="flex-1">
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar hidden />
       <Image
         source={bgImage}
         className="w-full h-full"
