@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { defineQuery } from "groq";
 import { formatDuration } from "lib/util";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -42,9 +42,9 @@ export const getWorkoutsQuery = defineQuery(`
 
 export default function HistoryPage() {
   const { user } = useUser();
-  const [workouts, setWorkouts] = React.useState<GetWorkoutsQueryResult>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [workouts, setWorkouts] = useState<GetWorkoutsQueryResult>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { refresh } = useLocalSearchParams();
   const router = useRouter();
 
@@ -65,12 +65,12 @@ export default function HistoryPage() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchWorkouts();
   }, [user?.id]);
 
   //Handle refresh
-  React.useEffect(() => {
+  useEffect(() => {
     if (refresh === "true") {
       fetchWorkouts();
       //clear refresh parameter from url

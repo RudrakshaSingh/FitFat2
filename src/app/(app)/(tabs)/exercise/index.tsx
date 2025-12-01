@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   RefreshControl,
@@ -19,11 +19,11 @@ import ExerciseCard from "@/app/components/ExerciseCard";
 export const exerciseQuery = defineQuery(`*[_type == "exercise"]`);
 
 export default function Exercises() {
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [exercises, setExercises] = React.useState<Exercise[]>([]);
-  const [filteredExercises, setFilteredExercises] = React.useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [filteredExercises, setFilteredExercises] = useState([]);
   const router = useRouter();
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchExercises = async () => {
     // Fetch exercises from Sanity
@@ -38,11 +38,11 @@ export default function Exercises() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchExercises();
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const filtered = exercises.filter((exercise: Exercise) =>
       exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
