@@ -6,14 +6,12 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const MAX_WEIGHT_KG = 200;
 const MAX_WEIGHT_LBS = 440.9; // 200 kg in lbs
@@ -248,353 +246,342 @@ export default function Onboarding() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+      <KeyboardAwareScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingVertical: 24,
+        }}
+        enableOnAndroid={true}
+        extraScrollHeight={20} // Reduced from 150
+        extraHeight={20} // Reduced from 150
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          style={{ flex: 1, paddingHorizontal: 24 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingVertical: 24,
-          }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Back Button */}
-          {step > 1 && (
-            <TouchableOpacity
-              onPress={handleBack}
-              className="mb-4 bg-white rounded-full p-3 shadow-sm self-start"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="arrow-back" size={24} color="#9333ea" />
-            </TouchableOpacity>
+        {/* Back Button */}
+        {step > 1 && (
+          <TouchableOpacity
+            onPress={handleBack}
+            className="mb-4 bg-white rounded-full p-3 shadow-sm self-start"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#9333ea" />
+          </TouchableOpacity>
+        )}
+
+        {/* Progress Bar */}
+        <View className={step === 1 ? "mt-0" : ""}>{renderProgressBar()}</View>
+
+        <View className="flex-1 justify-center">
+          {/* Step 1: Name */}
+          {step === 1 && (
+            <View>
+              <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
+                <Ionicons name="person" size={40} color="#9333ea" />
+              </View>
+              <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
+                What's your name?
+              </Text>
+              <Text className="text-lg text-gray-600 text-center mb-8">
+                Let's get to know you better
+              </Text>
+              <View className="flex-row items-center bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+                <Ionicons name="person-outline" size={24} color="#9333ea" />
+                <TextInput
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Enter your name"
+                  placeholderTextColor="#9ca3af"
+                  className="flex-1 ml-3 text-gray-800 text-lg"
+                  autoCapitalize="words"
+                />
+              </View>
+            </View>
           )}
 
-          {/* Progress Bar */}
-          <View className={step === 1 ? "mt-0" : ""}>
-            {renderProgressBar()}
-          </View>
+          {/* Step 2: Age */}
+          {step === 2 && (
+            <View>
+              <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
+                <Ionicons name="calendar" size={40} color="#9333ea" />
+              </View>
+              <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
+                How old are you?
+              </Text>
+              <Text className="text-lg text-gray-600 text-center mb-6">
+                This helps us personalize your experience
+              </Text>
+              <Text className="text-sm text-gray-500 text-center mb-4">
+                Max: {MAX_AGE} years
+              </Text>
+              <View className="flex-row items-center bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+                <Ionicons name="calendar-outline" size={24} color="#9333ea" />
+                <TextInput
+                  value={age}
+                  onChangeText={(value) => {
+                    const ageNum = Number(value);
+                    if (value && !isNaN(ageNum) && ageNum > MAX_AGE) {
+                      Alert.alert(
+                        "Limit Exceeded",
+                        `Maximum age is ${MAX_AGE} years`
+                      );
+                      return;
+                    }
+                    setAge(value);
+                  }}
+                  placeholder="Enter your age"
+                  placeholderTextColor="#9ca3af"
+                  keyboardType="numeric"
+                  className="flex-1 ml-3 text-gray-800 text-lg"
+                  maxLength={3}
+                />
+                <Text className="text-gray-500 font-bold text-lg">years</Text>
+              </View>
+            </View>
+          )}
 
-          <View className="flex-1 justify-center">
-            {/* Step 1: Name */}
-            {step === 1 && (
-              <View>
-                <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
-                  <Ionicons name="person" size={40} color="#9333ea" />
-                </View>
-                <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
-                  What's your name?
-                </Text>
-                <Text className="text-lg text-gray-600 text-center mb-8">
-                  Let's get to know you better
-                </Text>
-                <View className="flex-row items-center bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-                  <Ionicons name="person-outline" size={24} color="#9333ea" />
-                  <TextInput
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="Enter your name"
-                    placeholderTextColor="#9ca3af"
-                    className="flex-1 ml-3 text-gray-800 text-lg"
-                    autoCapitalize="words"
+          {/* Step 3: Gender */}
+          {step === 3 && (
+            <View>
+              <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
+                <Ionicons name="people" size={40} color="#9333ea" />
+              </View>
+              <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
+                What's your gender?
+              </Text>
+              <Text className="text-lg text-gray-600 text-center mb-8">
+                This helps us tailor your fitness plan
+              </Text>
+              <View className="flex-row gap-4">
+                <TouchableOpacity
+                  onPress={() => setGender("male")}
+                  className={`flex-1 items-center p-6 rounded-2xl border-2 ${
+                    gender === "male"
+                      ? "bg-purple-50 border-purple-600"
+                      : "bg-white border-gray-200"
+                  }`}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="male"
+                    size={48}
+                    color={gender === "male" ? "#9333ea" : "#6b7280"}
                   />
-                </View>
-              </View>
-            )}
+                  <Text
+                    className={`mt-3 font-bold text-lg ${
+                      gender === "male" ? "text-purple-600" : "text-gray-600"
+                    }`}
+                  >
+                    Male
+                  </Text>
+                </TouchableOpacity>
 
-            {/* Step 2: Age */}
-            {step === 2 && (
-              <View>
-                <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
-                  <Ionicons name="calendar" size={40} color="#9333ea" />
-                </View>
-                <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
-                  How old are you?
-                </Text>
-                <Text className="text-lg text-gray-600 text-center mb-6">
-                  This helps us personalize your experience
-                </Text>
-                <Text className="text-sm text-gray-500 text-center mb-4">
-                  Max: {MAX_AGE} years
-                </Text>
-                <View className="flex-row items-center bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-                  <Ionicons name="calendar-outline" size={24} color="#9333ea" />
-                  <TextInput
-                    value={age}
-                    onChangeText={(value) => {
-                      const ageNum = Number(value);
-                      if (value && !isNaN(ageNum) && ageNum > MAX_AGE) {
-                        Alert.alert(
-                          "Limit Exceeded",
-                          `Maximum age is ${MAX_AGE} years`
-                        );
-                        return;
-                      }
-                      setAge(value);
-                    }}
-                    placeholder="Enter your age"
-                    placeholderTextColor="#9ca3af"
-                    keyboardType="numeric"
-                    className="flex-1 ml-3 text-gray-800 text-lg"
-                    maxLength={3}
+                <TouchableOpacity
+                  onPress={() => setGender("female")}
+                  className={`flex-1 items-center p-6 rounded-2xl border-2 ${
+                    gender === "female"
+                      ? "bg-purple-50 border-purple-600"
+                      : "bg-white border-gray-200"
+                  }`}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="female"
+                    size={48}
+                    color={gender === "female" ? "#9333ea" : "#6b7280"}
                   />
-                  <Text className="text-gray-500 font-bold text-lg">years</Text>
-                </View>
-              </View>
-            )}
-
-            {/* Step 3: Gender */}
-            {step === 3 && (
-              <View>
-                <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
-                  <Ionicons name="people" size={40} color="#9333ea" />
-                </View>
-                <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
-                  What's your gender?
-                </Text>
-                <Text className="text-lg text-gray-600 text-center mb-8">
-                  This helps us tailor your fitness plan
-                </Text>
-                <View className="flex-row gap-4">
-                  <TouchableOpacity
-                    onPress={() => setGender("male")}
-                    className={`flex-1 items-center p-6 rounded-2xl border-2 ${
-                      gender === "male"
-                        ? "bg-purple-50 border-purple-600"
-                        : "bg-white border-gray-200"
+                  <Text
+                    className={`mt-3 font-bold text-lg ${
+                      gender === "female" ? "text-purple-600" : "text-gray-600"
                     }`}
-                    activeOpacity={0.7}
                   >
-                    <Ionicons
-                      name="male"
-                      size={48}
-                      color={gender === "male" ? "#9333ea" : "#6b7280"}
-                    />
-                    <Text
-                      className={`mt-3 font-bold text-lg ${
-                        gender === "male" ? "text-purple-600" : "text-gray-600"
-                      }`}
-                    >
-                      Male
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => setGender("female")}
-                    className={`flex-1 items-center p-6 rounded-2xl border-2 ${
-                      gender === "female"
-                        ? "bg-purple-50 border-purple-600"
-                        : "bg-white border-gray-200"
-                    }`}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name="female"
-                      size={48}
-                      color={gender === "female" ? "#9333ea" : "#6b7280"}
-                    />
-                    <Text
-                      className={`mt-3 font-bold text-lg ${
-                        gender === "female"
-                          ? "text-purple-600"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      Female
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                    Female
+                  </Text>
+                </TouchableOpacity>
               </View>
-            )}
+            </View>
+          )}
 
-            {/* Step 4: Weight */}
-            {step === 4 && (
-              <View>
-                <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
-                  <Ionicons name="fitness" size={40} color="#9333ea" />
-                </View>
-                <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
-                  What's your weight?
-                </Text>
-                <Text className="text-lg text-gray-600 text-center mb-4">
-                  Enter in kg or lbs
-                </Text>
-                <Text className="text-sm text-gray-500 text-center mb-6">
-                  Max: {MAX_WEIGHT_KG} kg / {MAX_WEIGHT_LBS.toFixed(0)} lbs
-                </Text>
-
-                <View className="flex-row gap-4">
-                  {/* Weight in KG */}
-                  <View className="flex-1">
-                    <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
-                      Kilograms
-                    </Text>
-                    <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                      <Ionicons
-                        name="barbell-outline"
-                        size={20}
-                        color="#9333ea"
-                      />
-                      <TextInput
-                        value={weightKg}
-                        onChangeText={handleWeightKgChange}
-                        placeholder="Weight"
-                        placeholderTextColor="#9ca3af"
-                        keyboardType="decimal-pad"
-                        className="flex-1 ml-2 text-gray-800 text-base"
-                      />
-                      <Text className="text-gray-500 font-medium ml-1">kg</Text>
-                    </View>
-                  </View>
-
-                  {/* Weight in LBS */}
-                  <View className="flex-1">
-                    <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
-                      Pounds
-                    </Text>
-                    <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                      <Ionicons
-                        name="barbell-outline"
-                        size={20}
-                        color="#9333ea"
-                      />
-                      <TextInput
-                        value={weightLbs}
-                        onChangeText={handleWeightLbsChange}
-                        placeholder="Weight"
-                        placeholderTextColor="#9ca3af"
-                        keyboardType="decimal-pad"
-                        className="flex-1 ml-2 text-gray-800 text-base"
-                      />
-                      <Text className="text-gray-500 font-medium ml-1">
-                        lbs
-                      </Text>
-                    </View>
-                  </View>
-                </View>
+          {/* Step 4: Weight */}
+          {step === 4 && (
+            <View>
+              <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
+                <Ionicons name="fitness" size={40} color="#9333ea" />
               </View>
-            )}
+              <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
+                What's your weight?
+              </Text>
+              <Text className="text-lg text-gray-600 text-center mb-4">
+                Enter in kg or lbs
+              </Text>
+              <Text className="text-sm text-gray-500 text-center mb-6">
+                Max: {MAX_WEIGHT_KG} kg / {MAX_WEIGHT_LBS.toFixed(0)} lbs
+              </Text>
 
-            {/* Step 5: Height */}
-            {step === 5 && (
-              <View>
-                <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
-                  <Ionicons name="resize" size={40} color="#9333ea" />
-                </View>
-                <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
-                  What's your height?
-                </Text>
-                <Text className="text-lg text-gray-600 text-center mb-4">
-                  Enter in cm or ft/in
-                </Text>
-                <Text className="text-sm text-gray-500 text-center mb-6">
-                  Max: {MAX_HEIGHT_FEET} ft / {MAX_HEIGHT_CM.toFixed(0)} cm
-                </Text>
-
-                {/* Height in CM */}
-                <View className="mb-4">
+              <View className="flex-row gap-4">
+                {/* Weight in KG */}
+                <View className="flex-1">
                   <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
-                    Centimeters
+                    Kilograms
                   </Text>
                   <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                    <Ionicons name="resize-outline" size={20} color="#9333ea" />
+                    <Ionicons
+                      name="barbell-outline"
+                      size={20}
+                      color="#9333ea"
+                    />
                     <TextInput
-                      value={heightCm}
-                      onChangeText={handleHeightCmChange}
-                      placeholder="Height"
+                      value={weightKg}
+                      onChangeText={handleWeightKgChange}
+                      placeholder="Weight"
                       placeholderTextColor="#9ca3af"
                       keyboardType="decimal-pad"
                       className="flex-1 ml-2 text-gray-800 text-base"
                     />
-                    <Text className="text-gray-500 font-medium ml-1">cm</Text>
+                    <Text className="text-gray-500 font-medium ml-1">kg</Text>
                   </View>
                 </View>
 
-                {/* Height in FT/IN */}
-                <View>
+                {/* Weight in LBS */}
+                <View className="flex-1">
                   <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
-                    Feet & Inches
+                    Pounds
                   </Text>
-                  <View className="flex-row gap-4">
-                    {/* Feet */}
-                    <View className="flex-1">
-                      <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                        <Ionicons
-                          name="resize-outline"
-                          size={20}
-                          color="#9333ea"
-                        />
-                        <TextInput
-                          value={heightFeet}
-                          onChangeText={(value) => {
-                            setHeightFeet(value);
-                            handleHeightFtInChange(value, heightInches);
-                          }}
-                          placeholder="Feet"
-                          placeholderTextColor="#9ca3af"
-                          keyboardType="numeric"
-                          maxLength={2}
-                          className="flex-1 ml-2 text-gray-800 text-base"
-                        />
-                        <Text className="text-gray-500 font-medium ml-1">
-                          ft
-                        </Text>
-                      </View>
-                    </View>
+                  <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                    <Ionicons
+                      name="barbell-outline"
+                      size={20}
+                      color="#9333ea"
+                    />
+                    <TextInput
+                      value={weightLbs}
+                      onChangeText={handleWeightLbsChange}
+                      placeholder="Weight"
+                      placeholderTextColor="#9ca3af"
+                      keyboardType="decimal-pad"
+                      className="flex-1 ml-2 text-gray-800 text-base"
+                    />
+                    <Text className="text-gray-500 font-medium ml-1">lbs</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
 
-                    {/* Inches */}
-                    <View className="flex-1">
-                      <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                        <Ionicons
-                          name="resize-outline"
-                          size={20}
-                          color="#9333ea"
-                        />
-                        <TextInput
-                          value={heightInches}
-                          onChangeText={(value) => {
-                            setHeightInches(value);
-                            handleHeightFtInChange(heightFeet, value);
-                          }}
-                          placeholder="Inches"
-                          placeholderTextColor="#9ca3af"
-                          keyboardType="numeric"
-                          maxLength={2}
-                          className="flex-1 ml-2 text-gray-800 text-base"
-                        />
-                        <Text className="text-gray-500 font-medium ml-1">
-                          in
-                        </Text>
-                      </View>
+          {/* Step 5: Height */}
+          {step === 5 && (
+            <View>
+              <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
+                <Ionicons name="resize" size={40} color="#9333ea" />
+              </View>
+              <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
+                What's your height?
+              </Text>
+              <Text className="text-lg text-gray-600 text-center mb-4">
+                Enter in cm or ft/in
+              </Text>
+              <Text className="text-sm text-gray-500 text-center mb-6">
+                Max: {MAX_HEIGHT_FEET} ft / {MAX_HEIGHT_CM.toFixed(0)} cm
+              </Text>
+
+              {/* Height in CM */}
+              <View className="mb-4">
+                <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
+                  Centimeters
+                </Text>
+                <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                  <Ionicons name="resize-outline" size={20} color="#9333ea" />
+                  <TextInput
+                    value={heightCm}
+                    onChangeText={handleHeightCmChange}
+                    placeholder="Height"
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="decimal-pad"
+                    className="flex-1 ml-2 text-gray-800 text-base"
+                  />
+                  <Text className="text-gray-500 font-medium ml-1">cm</Text>
+                </View>
+              </View>
+
+              {/* Height in FT/IN */}
+              <View>
+                <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
+                  Feet & Inches
+                </Text>
+                <View className="flex-row gap-4">
+                  {/* Feet */}
+                  <View className="flex-1">
+                    <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                      <Ionicons
+                        name="resize-outline"
+                        size={20}
+                        color="#9333ea"
+                      />
+                      <TextInput
+                        value={heightFeet}
+                        onChangeText={(value) => {
+                          setHeightFeet(value);
+                          handleHeightFtInChange(value, heightInches);
+                        }}
+                        placeholder="Feet"
+                        placeholderTextColor="#9ca3af"
+                        keyboardType="numeric"
+                        maxLength={2}
+                        className="flex-1 ml-2 text-gray-800 text-base"
+                      />
+                      <Text className="text-gray-500 font-medium ml-1">ft</Text>
+                    </View>
+                  </View>
+
+                  {/* Inches */}
+                  <View className="flex-1">
+                    <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                      <Ionicons
+                        name="resize-outline"
+                        size={20}
+                        color="#9333ea"
+                      />
+                      <TextInput
+                        value={heightInches}
+                        onChangeText={(value) => {
+                          setHeightInches(value);
+                          handleHeightFtInChange(heightFeet, value);
+                        }}
+                        placeholder="Inches"
+                        placeholderTextColor="#9ca3af"
+                        keyboardType="numeric"
+                        maxLength={2}
+                        className="flex-1 ml-2 text-gray-800 text-base"
+                      />
+                      <Text className="text-gray-500 font-medium ml-1">in</Text>
                     </View>
                   </View>
                 </View>
               </View>
-            )}
-          </View>
+            </View>
+          )}
+        </View>
 
-          {/* Continue Button */}
-          <TouchableOpacity
-            onPress={handleNext}
-            disabled={isLoading}
-            className="bg-purple-600 rounded-2xl p-5 shadow-lg mb-4 mt-8"
-            activeOpacity={0.8}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <View className="flex-row items-center justify-center">
-                <Text className="text-white font-bold text-lg mr-2">
-                  {step === 5 ? "Complete" : "Continue"}
-                </Text>
-                <Ionicons name="arrow-forward" size={20} color="white" />
-              </View>
-            )}
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {/* Continue Button */}
+        <TouchableOpacity
+          onPress={handleNext}
+          disabled={isLoading}
+          className="bg-purple-600 rounded-2xl p-5 shadow-lg mb-4 mt-8"
+          activeOpacity={0.8}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <View className="flex-row items-center justify-center">
+              <Text className="text-white font-bold text-lg mr-2">
+                {step === 5 ? "Complete" : "Continue"}
+              </Text>
+              <Ionicons name="arrow-forward" size={20} color="white" />
+            </View>
+          )}
+        </TouchableOpacity>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

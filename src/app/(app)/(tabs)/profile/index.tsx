@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth, useUser } from "@clerk/clerk-expo";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const MAX_WEIGHT_KG = 200;
 const MAX_WEIGHT_LBS = 440.9; // 200 kg in lbs
@@ -281,7 +282,14 @@ export default function Profile() {
 
   return (
     <SafeAreaView className="flex flex-1 bg-gray-50">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView
+        className="flex-1"
+        enableOnAndroid={true}
+        extraScrollHeight={150} // lifts inputs above keyboard
+        extraHeight={150} // perfect for nested views
+        keyboardOpeningTime={0}
+        keyboardShouldPersistTaps="handled"
+      >
         <View className="px-6 py-4">
           {/* Header */}
           <View className="flex-row justify-between items-center mb-6">
@@ -678,7 +686,7 @@ export default function Profile() {
             </TouchableOpacity>
           )}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

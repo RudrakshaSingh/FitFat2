@@ -43,8 +43,10 @@ export default function Exercises() {
   }, []);
 
   useEffect(() => {
+    const cleanedQuery = searchQuery.trim().replace(/\s+/g, " ").toLowerCase();
+
     const filtered = exercises.filter((exercise: Exercise) =>
-      exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
+      exercise.name.toLowerCase().includes(cleanedQuery)
     );
     setFilteredExercises(filtered);
   }, [searchQuery, exercises]);
