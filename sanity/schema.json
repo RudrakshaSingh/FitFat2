@@ -134,7 +134,7 @@
                         "type": "objectAttribute",
                         "value": {
                           "type": "string",
-                          "value": "exerciseSet"
+                          "value": "set"
                         }
                       }
                     },

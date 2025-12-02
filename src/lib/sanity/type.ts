@@ -33,7 +33,7 @@ export type Workout = {
       reps?: number;
       weight?: number;
       weightUnit?: "kg" | "lbs";
-      _type: "exerciseSet";
+      _type: "set";
       _key: string;
     }>;
     _type: "workoutExercise";
@@ -240,7 +240,7 @@ export type GetWorkoutsQueryResult = Array<{
       reps: number | null;
       weight: number | null;
       weightUnit: "kg" | "lbs" | null;
-      _type: "exerciseSet";
+      _type: "set";
       _key: string;
     }> | null;
     _type: "workoutExercise";
@@ -267,7 +267,7 @@ export type GetWorkoutRecordQueryResult = {
       reps: number | null;
       weight: number | null;
       weightUnit: "kg" | "lbs" | null;
-      _type: "exerciseSet";
+      _type: "set";
       _key: string;
     }> | null;
     _type: "workoutExercise";
