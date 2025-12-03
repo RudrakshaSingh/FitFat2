@@ -8,9 +8,10 @@ function Layout() {
       <Stack.Screen
         name="exercise-bodypart"
         options={{
-          headerShown: true,
-          headerTitle: "Excercises by Body Part",
-          headerTitleAlign: "center",
+          headerShown: false,
+          presentation: "formSheet",
+          animation: "slide_from_bottom",
+          statusBarHidden: true,
         }}
       />
       <Stack.Screen

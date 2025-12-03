@@ -94,40 +94,32 @@ export default function Excercise() {
   const fetchFilters = async () => {
     setLoading(true);
     try {
-      const [equipRes, muscleRes] = await Promise.all([
-        axios.get(
-          "https://exercisedb-api-v1-dataset1.p.rapidapi.com/api/v1/equipments",
-          {
-            headers: {
-              "x-rapidapi-key": RAPIDAPI_KEY,
-              "x-rapidapi-host": RAPIDAPI_HOST,
-            },
-          }
-        ),
-        axios.get(
-          "https://exercisedb-api-v1-dataset1.p.rapidapi.com/api/v1/muscles",
-          {
-            headers: {
-              "x-rapidapi-key": RAPIDAPI_KEY,
-              "x-rapidapi-host": RAPIDAPI_HOST,
-            },
-          }
-        ),
+      const [equipmentRes, musclesRes] = await Promise.all([
+        axios.get("https://exercisedb.p.rapidapi.com/exercises/equipmentList", {
+          headers: {
+            "x-rapidapi-key": RAPIDAPI_KEY,
+            "x-rapidapi-host": RAPIDAPI_HOST,
+          },
+        }),
+        axios.get("https://exercisedb.p.rapidapi.com/exercises/targetList", {
+          headers: {
+            "x-rapidapi-key": RAPIDAPI_KEY,
+            "x-rapidapi-host": RAPIDAPI_HOST,
+          },
+        }),
       ]);
 
-      if (equipRes.data.success) {
-        const sortedEquipment = equipRes.data.data.sort((a: any, b: any) =>
-          a.name.localeCompare(b.name)
-        );
-        setEquipment(sortedEquipment);
-      }
+      // New API returns plain arrays → just sort and set
+      const sortedEquipment = (equipmentRes.data || []).sort(
+        (a: string, b: string) => a.localeCompare(b)
+      );
 
-      if (muscleRes.data.success) {
-        const sortedMuscles = muscleRes.data.data.sort((a: any, b: any) =>
-          a.name.localeCompare(b.name)
-        );
-        setMuscles(sortedMuscles);
-      }
+      const sortedMuscles = (musclesRes.data || []).sort(
+        (a: string, b: string) => a.localeCompare(b)
+      );
+
+      setEquipment(sortedEquipment.map((name) => ({ name }))); // Convert to { name: "dumbbell" }
+      setMuscles(sortedMuscles.map((name) => ({ name }))); // Same format as before
     } catch (error) {
       console.error("Failed to fetch filters:", error);
     } finally {
@@ -140,8 +132,11 @@ export default function Excercise() {
     fetchFilters();
   }, []);
 
-  const handleBodyPartPress = (title: string) => {
-    navigation.navigate("exercise-bodypart", { bodyPart: title });
+  const handleBodyPartPress = (title: string, image: string) => {
+    navigation.navigate("exercise-bodypart", {
+      bodyPart: title,
+      bodyPartImage: image, // <-- passing the image URL
+    });
   };
 
   const handleDayPress = (day: string, fullDate: Date) => {
@@ -158,7 +153,7 @@ export default function Excercise() {
 
   const renderBodyPart = ({ item }: any) => (
     <TouchableOpacity
-      onPress={() => handleBodyPartPress(item.title)}
+      onPress={() => handleBodyPartPress(item.title, item.image)}
       className="mr-6 items-center"
       activeOpacity={0.8}
     >
