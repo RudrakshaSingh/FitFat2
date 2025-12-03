@@ -14,11 +14,15 @@ import { defineQuery } from "groq";
 import { client } from "@/lib/sanity/client";
 import { Exercise } from "@/lib/sanity/type";
 import ExerciseCard from "@/app/components/ExerciseCard";
+import { useUser } from "@clerk/clerk-expo";
 
 //Define query outside the component for proper type generation
-export const exerciseQuery = defineQuery(`*[_type == "exercise"]`);
+export const exerciseQuery = defineQuery(`
+  *[_type == "exercise" && userId == $userId]
+`);
 
 export default function Exercises() {
+  const { user } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [filteredExercises, setFilteredExercises] = useState([]);
@@ -28,7 +32,10 @@ export default function Exercises() {
   const fetchExercises = async () => {
     // Fetch exercises from Sanity
     try {
-      const exercises = await client.fetch(exerciseQuery);
+      const exercises = await client.fetch(exerciseQuery, {
+        userId: user?.id,
+      });
+
       // console.log("ex:", exercises);
 
       setExercises(exercises);
@@ -39,8 +46,8 @@ export default function Exercises() {
   };
 
   useEffect(() => {
-    fetchExercises();
-  }, []);
+    if (user?.id) fetchExercises();
+  }, [user]);
 
   useEffect(() => {
     const cleanedQuery = searchQuery.trim().replace(/\s+/g, " ").toLowerCase();

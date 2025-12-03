@@ -12,8 +12,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "react-native-svg";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function ExerciseDetail() {
+  const { user } = useUser();
   const router = useRouter();
   const { exercise: raw } = useLocalSearchParams<{ exercise?: string }>();
   const exercise = raw ? JSON.parse(raw) : null;
@@ -52,7 +54,7 @@ export default function ExerciseDetail() {
     const result = await fetch("/api/add-execisie-to-library", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exercise }), // send RAW exercise
+      body: JSON.stringify({ exercise, userId: user?.id }), // send RAW exercise
     });
 
     return result.ok;

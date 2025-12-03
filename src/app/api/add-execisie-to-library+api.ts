@@ -2,7 +2,11 @@ import { adminClient } from "@/lib/sanity/client";
 
 export async function POST(req: Request) {
   try {
-    const { exercise } = await req.json();
+    const { exercise, userId } = await req.json();
+
+    if (!userId) {
+      return Response.json({ error: "Missing userId" }, { status: 400 });
+    }
 
     // 1️⃣ Download image as ArrayBuffer
     const res = await fetch(exercise.gifUrl);
@@ -20,6 +24,7 @@ export async function POST(req: Request) {
     // 4️⃣ Build valid Exercise document
     const exerciseData = {
       _type: "exercise",
+      userId: userId,
       name: exercise.name,
       description: exercise.description,
       difficulty: exercise.difficulty || "beginner",
