@@ -17,17 +17,19 @@ function Layout() {
       <Stack.Screen
         name="exercise-muscle"
         options={{
-          headerShown: true,
-          headerTitle: "Excercises by Muscle",
-          headerTitleAlign: "center",
+          headerShown: false,
+          presentation: "modal",
+          animation: "slide_from_bottom",
+          statusBarHidden: true,
         }}
       />
       <Stack.Screen
         name="exercise-equipment"
         options={{
-          headerShown: true,
-          headerTitle: "Excercises by Equipment",
-          headerTitleAlign: "center",
+          headerShown: false,
+          presentation: "modal",
+          animation: "slide_from_bottom",
+          statusBarHidden: true,
         }}
       />
     </Stack>
