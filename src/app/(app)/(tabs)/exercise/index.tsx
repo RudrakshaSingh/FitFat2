@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { RefreshControl } from "react-native"; // Add this import at the top
 // Import body parts
 import bodyParts from "../../../../data/bodyParts";
 
@@ -88,54 +88,58 @@ export default function Excercise() {
   const weekDays = getThisWeek();
   const [equipment, setEquipment] = useState<{ name: string }[]>([]);
   const [muscles, setMuscles] = useState<{ name: string }[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchFilters = async () => {
-      try {
-        const [equipRes, muscleRes] = await Promise.all([
-          axios.get(
-            "https://exercisedb-api-v1-dataset1.p.rapidapi.com/api/v1/equipments",
-            {
-              headers: {
-                "x-rapidapi-key": RAPIDAPI_KEY,
-                "x-rapidapi-host": RAPIDAPI_HOST,
-              },
-            }
-          ),
-          axios.get(
-            "https://exercisedb-api-v1-dataset1.p.rapidapi.com/api/v1/muscles",
-            {
-              headers: {
-                "x-rapidapi-key": RAPIDAPI_KEY,
-                "x-rapidapi-host": RAPIDAPI_HOST,
-              },
-            }
-          ),
-        ]);
+  const fetchFilters = async () => {
+    setLoading(true);
+    try {
+      const [equipRes, muscleRes] = await Promise.all([
+        axios.get(
+          "https://exercisedb-api-v1-dataset1.p.rapidapi.com/api/v1/equipments",
+          {
+            headers: {
+              "x-rapidapi-key": RAPIDAPI_KEY,
+              "x-rapidapi-host": RAPIDAPI_HOST,
+            },
+          }
+        ),
+        axios.get(
+          "https://exercisedb-api-v1-dataset1.p.rapidapi.com/api/v1/muscles",
+          {
+            headers: {
+              "x-rapidapi-key": RAPIDAPI_KEY,
+              "x-rapidapi-host": RAPIDAPI_HOST,
+            },
+          }
+        ),
+      ]);
 
-        if (equipRes.data.success) {
-          const sortedEquipment = equipRes.data.data.sort((a: any, b: any) =>
-            a.name.localeCompare(b.name)
-          );
-          setEquipment(sortedEquipment);
-        }
-
-        if (muscleRes.data.success) {
-          const sortedMuscles = muscleRes.data.data.sort((a: any, b: any) =>
-            a.name.localeCompare(b.name)
-          );
-          setMuscles(sortedMuscles);
-        }
-      } catch (error) {
-        console.error("Failed to fetch filters:", error);
-      } finally {
-        setLoading(false);
+      if (equipRes.data.success) {
+        const sortedEquipment = equipRes.data.data.sort((a: any, b: any) =>
+          a.name.localeCompare(b.name)
+        );
+        setEquipment(sortedEquipment);
       }
-    };
 
+      if (muscleRes.data.success) {
+        const sortedMuscles = muscleRes.data.data.sort((a: any, b: any) =>
+          a.name.localeCompare(b.name)
+        );
+        setMuscles(sortedMuscles);
+      }
+    } catch (error) {
+      console.error("Failed to fetch filters:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Then call it on mount
+  useEffect(() => {
     fetchFilters();
   }, []);
+
   const handleBodyPartPress = (title: string) => {
     navigation.navigate("exercise-bodypart", { bodyPart: title });
   };
@@ -213,7 +217,22 @@ export default function Excercise() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              setLoading(true);
+              await fetchFilters(); // Re-use your existing fetch function
+              setRefreshing(false);
+            }}
+            colors={["#ec4899"]} // Pink spinner (matches your theme)
+            tintColor="#ec4899"
+          />
+        }
+      >
         {/* Header */}
         <View className="px-6 pt-8 pb-6 bg-white">
           <Text className="text-4xl font-extrabold text-gray-900">
@@ -228,7 +247,7 @@ export default function Excercise() {
         <View className="mt-10 px-6">
           <View className="flex-row items-start mb-4">
             <View
-              className="w-1.5 bg-pink-600 rounded-full mr-3 "
+              className="w-1.5 bg-pink-600 rounded-full mr-3"
               style={{ height: "100%", minHeight: 32 }}
             />
             <Text className="text-3xl font-bold text-gray-800 flex-1 leading-tight">
@@ -250,7 +269,7 @@ export default function Excercise() {
         <View className="mt-12 px-6">
           <View className="flex-row items-start mb-4">
             <View
-              className="w-1.5 bg-pink-600 rounded-full mr-3 "
+              className="w-1.5 bg-pink-600 rounded-full mr-3"
               style={{ height: "100%", minHeight: 32 }}
             />
             <Text className="text-3xl font-bold text-gray-800 flex-1 leading-tight">
@@ -280,7 +299,7 @@ export default function Excercise() {
             </Text>
           </View>
 
-          {loading ? (
+          {loading && !refreshing ? (
             <Text className="text-gray-500 text-center py-8">
               Loading equipment...
             </Text>
@@ -307,7 +326,7 @@ export default function Excercise() {
             </Text>
           </View>
 
-          {loading ? (
+          {loading && !refreshing ? (
             <Text className="text-gray-500 text-center py-8">
               Loading muscles...
             </Text>

@@ -1,0 +1,51 @@
+useEffect(() => {
+  const timer = setTimeout(() => {
+    const fetchFilters = async () => {
+      try {
+        const [equipRes, muscleRes] = await Promise.all([
+          axios.get(
+            "https://exercisedb-api-v1-dataset1.p.rapidapi.com/api/v1/equipments",
+            {
+              headers: {
+                "x-rapidapi-key": RAPIDAPI_KEY,
+                "x-rapidapi-host": RAPIDAPI_HOST,
+              },
+            }
+          ),
+          axios.get(
+            "https://exercisedb-api-v1-dataset1.p.rapidapi.com/api/v1/muscles",
+            {
+              headers: {
+                "x-rapidapi-key": RAPIDAPI_KEY,
+                "x-rapidapi-host": RAPIDAPI_HOST,
+              },
+            }
+          ),
+        ]);
+
+        if (equipRes.data.success) {
+          const sortedEquipment = equipRes.data.data.sort((a: any, b: any) =>
+            a.name.localeCompare(b.name)
+          );
+          setEquipment(sortedEquipment);
+        }
+
+        if (muscleRes.data.success) {
+          const sortedMuscles = muscleRes.data.data.sort((a: any, b: any) =>
+            a.name.localeCompare(b.name)
+          );
+          setMuscles(sortedMuscles);
+        }
+      } catch (error) {
+        console.error("Failed to fetch filters:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFilters();
+  }, 3000); // 3 seconds delay
+
+  // Optional: cleanup timer if component unmounts early
+  return () => clearTimeout(timer);
+}, []);
