@@ -9,7 +9,7 @@ function Layout() {
         name="exercise-bodypart"
         options={{
           headerShown: false,
-          presentation: "formSheet",
+          presentation: "modal",
           animation: "slide_from_bottom",
           statusBarHidden: true,
         }}
