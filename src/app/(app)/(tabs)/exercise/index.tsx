@@ -27,6 +27,8 @@ import thu from "../../../../../assets/days/thu.png";
 import fri from "../../../../../assets/days/fri.png";
 import sat from "../../../../../assets/days/sat.png";
 import sun from "../../../../../assets/days/sun.png";
+import { useRouter } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 
 const dayImages: { [key: string]: any } = {
   Mon: mon,
@@ -84,12 +86,14 @@ const getThisWeek = () => {
 };
 
 export default function Excercise() {
+  const router = useRouter();
   const navigation = useNavigation<any>();
   const weekDays = getThisWeek();
   const [equipment, setEquipment] = useState<{ name: string }[]>([]);
   const [muscles, setMuscles] = useState<{ name: string }[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { user } = useUser();
 
   const fetchFilters = async () => {
     setLoading(true);
@@ -185,7 +189,7 @@ export default function Excercise() {
             resizeMode="contain"
           />
           <View className=" items-center">
-            <Text className="text-white text-xl text-black font-bold drop-shadow-lg">
+            <Text className="text-black text-xl text-black font-bold drop-shadow-lg">
               {item.date} {item.month}
             </Text>
           </View>
@@ -236,6 +240,45 @@ export default function Excercise() {
           <Text className="text-lg text-gray-600 mt-2">
             Ready to dominate today?
           </Text>
+        </View>
+
+        {/* My Library Section */}
+        <View className="px-6 mt-6">
+          <Text className="text-2xl font-bold text-gray-900 mb-3">
+            {(user.unsafeMetadata.name as string) + "'s" || "My"} Library
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => router.push("/user-excercise-library")}
+            activeOpacity={0.8}
+            className="rounded-2xl overflow-hidden shadow-md border border-gray-200"
+          >
+            {/* Image Wrapper */}
+            <View>
+              <Image
+                source={require("../../../../../assets/bg-image.jpg")}
+                style={{ width: "100%", height: 160 }}
+                resizeMode="cover"
+              />
+
+              {/* White Text Overlay */}
+              <View className="absolute inset-0 justify-end items-center pb-4">
+                <Text className="text-white text-4xl font-semibold drop-shadow-lg">
+                  User Library
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Info Note */}
+        <View className="px-6 mt-4">
+          <View className="bg-blue-50 border border-blue-200 px-4 py-3 rounded-2xl">
+            <Text className="text-blue-800 font-medium">
+              Add your own custom exercises to the library, or add them first
+              from our exercise library below to use them in your workouts.
+            </Text>
+          </View>
         </View>
 
         {/* Weekly Program */}

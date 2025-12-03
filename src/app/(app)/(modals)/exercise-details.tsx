@@ -1,6 +1,13 @@
 // app/(modals)/exercise-details.tsx  (or wherever you have it)
 import React from "react";
-import { TouchableOpacity, Text, View, ScrollView, Image } from "react-native";
+import {
+  TouchableOpacity,
+  Text,
+  View,
+  ScrollView,
+  Image,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -26,10 +33,30 @@ export default function ExerciseDetail() {
       ? "bg-yellow-500"
       : "bg-red-500";
 
-  const addToUserLibrary = () => {
-    console.log("Added to library:", exercise.name);
-    // Your logic here
+  const addToUserLibrary = async () => {
+    try {
+      const success = await saveExerciseToSanity(exercise);
+
+      if (success) {
+        Alert.alert("Saved!", "Exercise added to your library.");
+      } else {
+        Alert.alert("Error", "Failed to save exercise.");
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Something went wrong.");
+    }
   };
+
+  async function saveExerciseToSanity(exercise: any) {
+    const result = await fetch("/api/add-execisie-to-library", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ exercise }), // send RAW exercise
+    });
+
+    return result.ok;
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-gray-950">

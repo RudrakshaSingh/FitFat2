@@ -16,7 +16,7 @@ import { useWorkoutStore } from "store/workout-store";
 import ExerciseCard from "./ExerciseCard";
 import { Exercise } from "@/lib/sanity/type";
 import { client } from "@/lib/sanity/client";
-import { exerciseQuery } from "../(app)/(tabs)/exercise";
+import { exerciseQuery } from "../(app)/(tabs)/exercises";
 
 interface ExerciseSelectionModalProps {
   visible: boolean;

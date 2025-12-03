@@ -32,6 +32,15 @@ function Layout() {
           statusBarHidden: true,
         }}
       />
+      <Stack.Screen
+        name="user-excercise-library"
+        options={{
+          headerShown: false,
+          presentation: "modal",
+          animation: "slide_from_bottom",
+          statusBarHidden: true,
+        }}
+      />
     </Stack>
   );
 }

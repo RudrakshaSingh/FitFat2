@@ -195,7 +195,7 @@ export type FindExerciseQueryResult = {
   name: string | null;
 } | null;
 
-// Source: ../src/app/(app)/(tabs)/exercise/index.tsx
+// Source: ../src/app/(app)/(tabs)/exercises/index.tsx
 // Variable: exerciseQuery
 // Query: *[_type == "exercise"]
 export type ExerciseQueryResult = Array<{
