@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -6,6 +6,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  TextInput,
+  ScrollView,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ImageBackground } from "react-native";
@@ -23,20 +26,47 @@ export default function ExcerciseBodypart() {
     bodyPartImage?: string;
   }>();
 
-  const [allExercises, setAllExercises] = useState([]);
-  const [displayedExercises, setDisplayedExercises] = useState([]);
+  const [allExercises, setAllExercises] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
+    null
+  );
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const PAGE_SIZE = 20;
-  const imageUri =
-    bodyPartImage ||
-    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80";
+  // Extract unique equipment & muscles
+  const { equipmentList, musclesList } = useMemo(() => {
+    const equipmentSet = new Set<string>();
+    const muscleSet = new Set<string>();
 
-  const fetchAllExercises = async () => {
+    allExercises.forEach((ex) => {
+      if (ex.equipment) equipmentSet.add(ex.equipment);
+      if (ex.target) muscleSet.add(ex.target);
+    });
+
+    return {
+      equipmentList: Array.from(equipmentSet).sort(),
+      musclesList: Array.from(muscleSet).sort(),
+    };
+  }, [allExercises]);
+
+  const fetchAllExercises = async (isRefresh = false) => {
     if (!bodyPart) return;
 
-    setLoading(true);
+    if (isRefresh) {
+      // Full reset on refresh
+      setAllExercises([]);
+      setSearchQuery("");
+      setSelectedEquipment(null);
+      setSelectedMuscle(null);
+      setShowFilters(false);
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const res = await axios.get(
         `https://exercisedb.p.rapidapi.com/exercises/bodyPart/${encodeURIComponent(
@@ -50,46 +80,53 @@ export default function ExcerciseBodypart() {
           },
         }
       );
-
-      const data = res.data;
-      setAllExercises(data);
-      setDisplayedExercises(data.slice(0, PAGE_SIZE));
+      setAllExercises(res.data);
     } catch (error) {
       console.error("Failed to fetch exercises:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    if (bodyPart) {
-      fetchAllExercises();
-    }
+    if (bodyPart) fetchAllExercises();
   }, [bodyPart]);
 
-  const loadMore = () => {
-    if (loadingMore || displayedExercises.length >= allExercises.length) return;
+  const filteredExercises = useMemo(() => {
+    return allExercises.filter((ex) => {
+      const matchesSearch = ex.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesEquipment =
+        !selectedEquipment || ex.equipment === selectedEquipment;
+      const matchesMuscle = !selectedMuscle || ex.target === selectedMuscle;
+      return matchesSearch && matchesEquipment && matchesMuscle;
+    });
+  }, [allExercises, searchQuery, selectedEquipment, selectedMuscle]);
 
-    setLoadingMore(true);
-    setTimeout(() => {
-      const nextPage = Math.floor(displayedExercises.length / PAGE_SIZE) + 1;
-      const start = nextPage * PAGE_SIZE;
-      const end = start + PAGE_SIZE;
-      const more = allExercises.slice(start, end);
-
-      setDisplayedExercises((prev) => [...prev, ...more]);
-      setLoadingMore(false);
-    }, 300); // Small delay for smooth feel
+  const toggleFilter = (type: "equipment" | "muscle", value: string) => {
+    if (type === "equipment") {
+      setSelectedEquipment((prev) => (prev === value ? null : value));
+    } else {
+      setSelectedMuscle((prev) => (prev === value ? null : value));
+    }
   };
 
-  const renderExercise = ({ item }) => (
+  const goToExerciseDetail = (exercise: any) => {
+    router.push({
+      pathname: "(modals)/exercise-details",
+      params: {
+        exercise: JSON.stringify(exercise),
+      },
+    });
+  };
+
+  const renderExercise = ({ item }: any) => (
     <TouchableOpacity
       activeOpacity={0.8}
       className="bg-white rounded-2xl overflow-hidden mb-4 shadow-lg border border-gray-100"
-      onPress={() => {
-        console.log("Tapped:", item.name);
-        // Later: navigate to detail
-      }}
+      onPress={() => goToExerciseDetail(item)}
     >
       <View className="flex-row">
         <Image
@@ -97,12 +134,11 @@ export default function ExcerciseBodypart() {
           className="w-32 h-32"
           resizeMode="cover"
         />
-
         <View className="flex-1 justify-center px-4">
           <Text className="text-lg font-bold text-gray-900 capitalize leading-6">
             {item.name.replace(/-/g, " ")}
           </Text>
-          <Text className="text-sm text-pink-600 font-semibold mt-1">
+          <Text className="text-sm text-pink-600 font-semibold mt-1 capitalize">
             {item.target}
           </Text>
           <Text className="text-xs text-gray-500 mt-1 capitalize">
@@ -113,24 +149,20 @@ export default function ExcerciseBodypart() {
     </TouchableOpacity>
   );
 
-  const totalCount = allExercises.length;
-
   return (
     <SafeAreaView className="flex-1 bg-gray-900" edges={["left", "right"]}>
       {/* Hero */}
       <ImageBackground
-        source={{ uri: imageUri }}
+        source={{ uri: bodyPartImage }}
         className="w-full h-80 justify-end"
         resizeMode="cover"
       >
-        <View className="absolute top-12 left-2 right-2 z-10 px-4">
+        <View className="absolute top-12 left-6 z-10">
           <TouchableOpacity
-            onPress={() => {
-              router.back();
-            }}
-            className="h-10 w-10 bg-black rounded-full items-center justify-center backdrop-blur-md"
+            onPress={() => router.back()}
+            className="h-11 w-11 bg-black/50 rounded-full items-center justify-center backdrop-blur-md"
           >
-            <Ionicons name="close" size={24} color="white" />
+            <Ionicons name="arrow-back" size={26} color="white" />
           </TouchableOpacity>
         </View>
         <View className="absolute inset-0 bg-black/60" />
@@ -138,51 +170,159 @@ export default function ExcerciseBodypart() {
           <Text className="text-5xl font-extrabold text-white text-center tracking-tight">
             {bodyPart?.charAt(0).toUpperCase() + bodyPart?.slice(1)}
           </Text>
-
           <Text className="text-lg text-white/90 text-center mt-2 font-medium">
-            Target your {bodyPart?.toLowerCase()} with precision
+            {filteredExercises.length} exercises available
           </Text>
         </View>
       </ImageBackground>
 
-      {/* Exercise List */}
-      <View className="flex-1 bg-gray-50 rounded-t-3xl  px-6 ">
-        <Text className="text-xl text-black/90 text-center mt-3 font-medium">
-          {totalCount > 0 ? `${totalCount} Exercises` : "Loading..."}
-        </Text>
-        {loading ? (
+      {/* Search + Filter Bar */}
+      <View className="px-6 pt-6 pb-3 bg-gray-50 rounded-t-3xl -mt-6">
+        <View className="flex-row items-center gap-3">
+          <View className="flex-1 flex-row items-center bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-200">
+            <Ionicons name="search" size={20} color="#ec4899" />
+            <TextInput
+              placeholder="Search exercises..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              className="ml-3 flex-1 text-base"
+              placeholderTextColor="#999"
+            />
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={20} color="#aaa" />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          <TouchableOpacity
+            onPress={() => setShowFilters(!showFilters)}
+            className="h-12 w-12 bg-pink-600 rounded-2xl items-center justify-center shadow-lg"
+          >
+            <Ionicons
+              name={showFilters ? "close" : "options-outline"}
+              size={24}
+              color="white"
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Filters */}
+        {showFilters && (
+          <View className="mt-5 pb-6">
+            {equipmentList.length > 0 && (
+              <View className="mb-6">
+                <Text className="text-sm font-semibold text-gray-700 mb-3">
+                  Equipment
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row pr-6">
+                    {equipmentList.map((eq) => (
+                      <TouchableOpacity
+                        key={eq}
+                        onPress={() => toggleFilter("equipment", eq)}
+                        className={`mr-3 px-5 py-2.5 rounded-full border-2 ${
+                          selectedEquipment === eq
+                            ? "bg-pink-600 border-pink-600"
+                            : "bg-white border-gray-300"
+                        }`}
+                      >
+                        <Text
+                          className={`font-medium capitalize ${
+                            selectedEquipment === eq
+                              ? "text-white"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {eq}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+            )}
+
+            {musclesList.length > 0 && (
+              <View>
+                <Text className="text-sm font-semibold text-gray-700 mb-3">
+                  Target Muscle
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row pr-6">
+                    {musclesList.map((muscle) => (
+                      <TouchableOpacity
+                        key={muscle}
+                        onPress={() => toggleFilter("muscle", muscle)}
+                        className={`mr-3 px-5 py-2.5 rounded-full border-2 ${
+                          selectedMuscle === muscle
+                            ? "bg-pink-600 border-pink-600"
+                            : "bg-white border-gray-300"
+                        }`}
+                      >
+                        <Text
+                          className={`font-medium capitalize ${
+                            selectedMuscle === muscle
+                              ? "text-white"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {muscle}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+            )}
+
+            {(selectedEquipment || selectedMuscle) && (
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedEquipment(null);
+                  setSelectedMuscle(null);
+                }}
+                className="mt-5"
+              >
+                <Text className="text-pink-600 font-semibold text-center text-base">
+                  Clear All Filters
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
+
+      {/* Exercise List with Perfect Refresh */}
+      <View className="flex-1 bg-gray-50 px-6 pb-6">
+        {loading || refreshing ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#ec4899" />
             <Text className="text-gray-600 mt-4 text-lg">
-              Loading {bodyPart} exercises...
+              Loading exercises...
+            </Text>
+          </View>
+        ) : filteredExercises.length === 0 ? (
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-gray-500 text-lg">No exercises found</Text>
+            <Text className="text-gray-400 text-sm mt-2">
+              Try adjusting your filters
             </Text>
           </View>
         ) : (
           <FlatList
-            data={displayedExercises}
+            data={filteredExercises}
             keyExtractor={(item) => item.id}
             renderItem={renderExercise}
             showsVerticalScrollIndicator={false}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={
-              loadingMore ? (
-                <View className="py-6 items-center">
-                  <ActivityIndicator size="small" color="#ec4899" />
-                  <Text className="text-gray-500 mt-2">Loading more...</Text>
-                </View>
-              ) : displayedExercises.length < totalCount ? (
-                <View className="py-6 items-center">
-                  <Text className="text-gray-500">
-                    {displayedExercises.length} of {totalCount} shown
-                  </Text>
-                </View>
-              ) : null
-            }
-            ListEmptyComponent={
-              <Text className="text-center text-gray-500 py-10 text-lg">
-                No exercises found
-              </Text>
+            contentContainerStyle={{ paddingBottom: 20 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => fetchAllExercises(true)}
+                colors={["#ec4899"]}
+                tintColor="#ec4899"
+              />
             }
           />
         )}

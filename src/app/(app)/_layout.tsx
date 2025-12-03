@@ -45,6 +45,18 @@ function Layout() {
             animationTypeForReplace: "push",
           }}
         />
+
+        <Stack.Screen
+          name="(modals)/exercise-details"
+          options={{
+            headerShown: false,
+            presentation: "modal",
+            gestureEnabled: true,
+            animation: "slide_from_bottom",
+            animationTypeForReplace: "push",
+            statusBarHidden: true,
+          }}
+        />
       </Stack.Protected>
 
       {/* Auth routes - only accessible when NOT signed in */}
