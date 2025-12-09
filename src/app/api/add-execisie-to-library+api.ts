@@ -8,13 +8,21 @@ export async function POST(req: Request) {
       return Response.json({ error: "Missing userId" }, { status: 400 });
     }
 
-    // 1️⃣ Download image as ArrayBuffer
-    const res = await fetch(exercise.gifUrl);
-    const arrayBuffer = await res.arrayBuffer();
+    // 1️⃣ Download image or handle base64
+    let imageBuffer: Buffer;
 
-    // 2️⃣ Convert ArrayBuffer → Uint8Array → Buffer (TS SAFE)
-    const uint8 = new Uint8Array(arrayBuffer);
-    const imageBuffer = Buffer.from(uint8);
+    if (exercise.gifUrl.startsWith("data:")) {
+      // Handle Base64 Data URI
+      const base64Data = exercise.gifUrl.split(";base64,")[1];
+      imageBuffer = Buffer.from(base64Data, "base64");
+    } else {
+      // Handle Remote URL
+      const res = await fetch(exercise.gifUrl);
+      const arrayBuffer = await res.arrayBuffer();
+      imageBuffer = Buffer.from(new Uint8Array(arrayBuffer));
+    }
+
+    // 2️⃣ Conversion handled above
 
     // 3️⃣ Upload the buffer to Sanity
     const imageAsset = await adminClient.assets.upload("image", imageBuffer, {
@@ -43,6 +51,6 @@ export async function POST(req: Request) {
     return Response.json({ success: true, id: saved._id });
   } catch (err) {
     console.error("Error saving exercise:", err);
-    return Response.json({ error: "failed" }, { status: 500 });
+    return Response.json({ error: "failed", details: String(err) }, { status: 500 });
   }
 }

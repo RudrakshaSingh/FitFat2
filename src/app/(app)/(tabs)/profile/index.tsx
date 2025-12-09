@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useRouter } from "expo-router";
 
 const MAX_WEIGHT_KG = 200;
 const MAX_WEIGHT_LBS = 440.9; // 200 kg in lbs
@@ -22,6 +23,7 @@ const MAX_AGE = 150;
 export default function Profile() {
   const { signOut } = useAuth();
   const { user } = useUser();
+  const router = useRouter();
 
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
@@ -322,6 +324,24 @@ export default function Profile() {
               </View>
             </View>
           )}
+
+          {/* User Library Card */}
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/user-library")}
+            className="bg-white rounded-2xl p-4 mb-6 shadow-sm flex-row items-center border border-purple-100"
+            activeOpacity={0.8}
+          >
+            <View className="bg-purple-100 p-3 rounded-full mr-4">
+              <Ionicons name="library" size={24} color="#9333ea" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-gray-800">User Library</Text>
+              <Text className="text-gray-500 text-sm">
+                Your custom exercises & saved activities
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+          </TouchableOpacity>
 
           {/* Personal Information Card */}
           <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">

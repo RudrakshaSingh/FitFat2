@@ -16,7 +16,9 @@ import { useWorkoutStore } from "store/workout-store";
 import ExerciseCard from "./ExerciseCard";
 import { Exercise } from "@/lib/sanity/type";
 import { client } from "@/lib/sanity/client";
-import { exerciseQuery } from "../(app)/(tabs)/exercises";
+import { defineQuery } from "groq";
+
+const exerciseQuery = defineQuery('*[_type == "exercise"]');
 
 interface ExerciseSelectionModalProps {
   visible: boolean;

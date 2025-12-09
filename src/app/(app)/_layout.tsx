@@ -35,28 +35,7 @@ function Layout() {
       <Stack.Protected guard={isSignedIn}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="exercise-detail"
-          options={{
-            headerShown: false,
-            presentation: "modal",
-            gestureEnabled: true,
-            animation: "slide_from_bottom",
-            animationTypeForReplace: "push",
-          }}
-        />
-
-        <Stack.Screen
-          name="(modals)/exercise-details"
-          options={{
-            headerShown: false,
-            presentation: "modal",
-            gestureEnabled: true,
-            animation: "slide_from_bottom",
-            animationTypeForReplace: "push",
-            statusBarHidden: true,
-          }}
-        />
+        <Stack.Screen name="user-library" options={{ headerShown: false }} />
       </Stack.Protected>
 
       {/* Auth routes - only accessible when NOT signed in */}

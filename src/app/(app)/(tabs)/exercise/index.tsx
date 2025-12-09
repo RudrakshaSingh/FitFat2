@@ -249,7 +249,7 @@ export default function Excercise() {
           </Text>
 
           <TouchableOpacity
-            onPress={() => router.push("/user-excercise-library")}
+            onPress={() => router.push("/(app)/user-library")}
             activeOpacity={0.8}
             className="rounded-2xl overflow-hidden shadow-md border border-gray-200"
           >
