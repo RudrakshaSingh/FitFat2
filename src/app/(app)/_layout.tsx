@@ -2,8 +2,6 @@ import { Stack, useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { ActivityIndicator, View } from "react-native";
 import { useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 function Layout() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -37,6 +35,8 @@ function Layout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="user-library" options={{ headerShown: false }} />
         <Stack.Screen name="(modals)/exercise-details" options={{ headerShown: false }} />
+        <Stack.Screen name="daily-workout" options={{ headerShown: false }} />
+        <Stack.Screen name="edit-day-workout" options={{ headerShown: false }} />
       </Stack.Protected>
 
       {/* Auth routes - only accessible when NOT signed in */}

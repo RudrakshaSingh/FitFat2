@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       _type: "exercise",
       userId: userId,
       name: exercise.name,
+      target: exercise.target || undefined,
       description: exercise.description,
       difficulty: exercise.difficulty || "beginner",
       image: {

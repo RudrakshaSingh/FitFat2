@@ -24,9 +24,19 @@ export default function AddCustomExercise() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState("beginner");
+  const [target, setTarget] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Common target muscles
+  const targetMuscles = [
+    "abductors", "abs", "adductors", "biceps", "calves", 
+    "cardiovascular system", "delts", "forearms", "glutes", 
+    "hamstrings", "lats", "levator scapulae", "pectorals", 
+    "quads", "serratus anterior", "spine", "traps", 
+    "triceps", "upper back"
+  ];
 
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
@@ -69,6 +79,7 @@ export default function AddCustomExercise() {
           userId: user?.id,
           exercise: {
             name,
+            target: target || undefined,
             description,
             difficulty,
             gifUrl: image, // Naming it gifUrl to match API expectation, but it contains base64/uri
@@ -154,6 +165,32 @@ export default function AddCustomExercise() {
                   }`}
                 >
                   {level}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Target Muscle */}
+        <View className="mb-6">
+          <Text className="text-sm font-semibold text-gray-700 mb-2">Target Muscle (Optional)</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {targetMuscles.map((muscle) => (
+              <TouchableOpacity
+                key={muscle}
+                onPress={() => setTarget(target === muscle ? "" : muscle)}
+                className={`py-2 px-3 rounded-full border ${
+                  target === muscle
+                    ? "bg-pink-100 border-pink-500"
+                    : "bg-white border-gray-200"
+                }`}
+              >
+                <Text
+                  className={`capitalize text-sm font-medium ${
+                    target === muscle ? "text-pink-700" : "text-gray-600"
+                  }`}
+                >
+                  {muscle}
                 </Text>
               </TouchableOpacity>
             ))}

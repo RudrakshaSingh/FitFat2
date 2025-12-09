@@ -1,16 +1,18 @@
 {
   "scheme": "acme",
-  "userInterfaceStyle": "automatic",
+  "userInterfaceStyle": "light",
   "orientation": "default",
   "name": "FitFat2",
   "slug": "FitFat2",
-
   "icon": "./assets/app.png",
-
+  "androidStatusBar": {
+    "barStyle": "dark-content",
+    "backgroundColor": "#f9fafb",
+    "translucent": true
+  },
   "web": {
     "output": "server"
   },
-
   "plugins": [
     [
       "expo-router",

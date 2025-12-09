@@ -1,25 +1,24 @@
 import {
   View,
   Text,
-  StatusBar,
   Platform,
   TouchableOpacity,
   Alert,
   TextInput,
   ActivityIndicator,
+  StatusBar,
 } from "react-native";
 import React, { useState } from "react";
 import { useStopwatch } from "react-timer-hook";
 import { useWorkoutStore, WorkoutSet } from "store/workout-store";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Exercise from "sanity/schemaTypes/exercise";
 import ExerciseSelectionModal from "@/app/components/ExerciseSelectionModal";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { defineQuery } from "groq";
 import { client } from "@/lib/sanity/client";
 import { useUser } from "@clerk/clerk-expo";
-import { WorkoutData } from "@/app/api/save-workout+api";
+
 
 // Query to find exercise by name Execute Query
 const findExerciseQuery =
@@ -71,7 +70,7 @@ export default function ActiveWorkout() {
         // When leaving this screen → restore your default look
         StatusBar.setBarStyle("dark-content");
         if (Platform.OS === "android") {
-          StatusBar.setBackgroundColor("#ffffff");
+          StatusBar.setBackgroundColor("#f9fafb");
         }
       };
     }, [])

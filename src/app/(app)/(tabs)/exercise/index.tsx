@@ -131,7 +131,10 @@ export default function Exercise() {
   };
 
   const handleDayPress = (day: string, fullDate: Date) => {
-    navigation.navigate("DailyWorkout", { day, date: fullDate.toISOString() });
+    router.push({
+      pathname: "/(app)/daily-workout",
+      params: { day, date: fullDate.toISOString() },
+    });
   };
 
   const handleEquipmentPress = (name: string) => {

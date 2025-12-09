@@ -22,6 +22,12 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'target',
+      title: 'Target Muscle',
+      description: 'Primary muscle group targeted by this exercise.',
+      type: 'string',
+    }),
+    defineField({
       name: 'description',
       title: 'Description',
       description: 'Detailed description of the exercise.',

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar } from "react-native";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -80,7 +80,7 @@ export default function ExerciseSelectionModal({
       onRequestClose={onClose}
     >
       <SafeAreaView className="flex-1 bg-white">
-        <StatusBar style="dark" />
+        <StatusBar barStyle="dark-content" />
 
         {/* Header */}
         <View className="bg-white px-4 pt-4 pb-6 shadow-sm border-b border-gray-100">
