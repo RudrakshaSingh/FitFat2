@@ -36,6 +36,7 @@ function Layout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="user-library" options={{ headerShown: false }} />
+        <Stack.Screen name="(modals)/exercise-details" options={{ headerShown: false }} />
       </Stack.Protected>
 
       {/* Auth routes - only accessible when NOT signed in */}

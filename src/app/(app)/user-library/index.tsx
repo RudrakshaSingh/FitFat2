@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -28,6 +29,12 @@ export default function UserLibrary() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter exercises based on search query
+  const filteredExercises = exercises.filter((exercise) =>
+    exercise.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
 
   const fetchExercises = async () => {
     if (!user) return;
@@ -119,13 +126,34 @@ export default function UserLibrary() {
         </TouchableOpacity>
       </View>
 
+      {/* Search Bar */}
+      <View className="px-6 mb-2">
+        <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-3">
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <TextInput
+            className="flex-1 ml-3 text-gray-800 text-base"
+            placeholder="Search exercises..."
+            placeholderTextColor="#9ca3af"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       {loading ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#9333ea" />
         </View>
       ) : (
         <FlatList
-          data={exercises}
+          data={filteredExercises}
           renderItem={renderItem}
           keyExtractor={(item) => item._id}
           contentContainerStyle={{ padding: 24, paddingBottom: 100 }}

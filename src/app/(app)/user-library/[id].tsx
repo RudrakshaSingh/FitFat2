@@ -10,7 +10,9 @@ import {
   Image,
   Linking,
   ActivityIndicator,
+  Alert,
 } from "react-native";
+import { useUser } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { client, urlFor } from "@/lib/sanity/client";
 import {
@@ -25,6 +27,7 @@ export default function ExerciseDetail() {
   const [aiGuidance, setAIGuidance] = useState<string | null>(null);
   const [aiLoading, setAILoading] = useState(false);
   const { id } = useLocalSearchParams();
+  const { user } = useUser();
 
   useEffect(() => {
     // Fetch exercise details based on the id
@@ -72,6 +75,45 @@ export default function ExerciseDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!exercise || !user) return;
+
+    Alert.alert(
+      "Delete Exercise",
+      "Are you sure you want to delete this exercise? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const response = await fetch("/api/delete-exercise", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: exercise._id, userId: user.id }),
+              });
+              
+              const data = await response.json();
+
+              if (response.ok) {
+                 router.back();
+              } else {
+                 Alert.alert("Error", data.error || "Failed to delete exercise");
+                 setLoading(false);
+              }
+            } catch (error) {
+              console.error("Delete error:", error);
+              Alert.alert("Error", "Something went wrong.");
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-white">
@@ -105,13 +147,22 @@ export default function ExerciseDetail() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       {/* Header with close button */}
-      <View className="absolute top-12 left-4 z-10">
+      <View className="absolute top-12 left-4 right-4 z-10 flex-row justify-between items-center">
         <TouchableOpacity
           onPress={() => router.back()}
           className="h-10 w-10 bg-black/30 rounded-full items-center justify-center backdrop-blur-md"
         >
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
+
+        {exercise?.userId === user?.id && (
+            <TouchableOpacity
+            onPress={handleDelete}
+            className="h-10 w-10 bg-red-500/80 rounded-full items-center justify-center backdrop-blur-md"
+            >
+            <Ionicons name="trash-outline" size={20} color="white" />
+            </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} bounces={false}>

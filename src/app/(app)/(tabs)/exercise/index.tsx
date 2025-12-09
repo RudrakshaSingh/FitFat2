@@ -5,19 +5,17 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RefreshControl } from "react-native"; // Add this import at the top
-// Import body parts
+import { RefreshControl } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import bodyParts from "../../../../data/bodyParts";
-
 import axios from "axios";
 import { useEffect, useState } from "react";
-
-// Add these lines right after your imports
-const RAPIDAPI_KEY = process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
-const RAPIDAPI_HOST = process.env.EXPO_PUBLIC_RAPIDAPI_HOST;
+import { useRouter } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 
 // Import day images
 import mon from "../../../../../assets/days/mon.png";
@@ -27,8 +25,11 @@ import thu from "../../../../../assets/days/thu.png";
 import fri from "../../../../../assets/days/fri.png";
 import sat from "../../../../../assets/days/sat.png";
 import sun from "../../../../../assets/days/sun.png";
-import { useRouter } from "expo-router";
-import { useUser } from "@clerk/clerk-expo";
+
+const RAPIDAPI_KEY = process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
+const RAPIDAPI_HOST = process.env.EXPO_PUBLIC_RAPIDAPI_HOST;
+
+const { width } = Dimensions.get("window");
 
 const dayImages: { [key: string]: any } = {
   Mon: mon,
@@ -40,22 +41,11 @@ const dayImages: { [key: string]: any } = {
   Sun: sun,
 };
 
-// ── Dynamic Week Generator ──────────────────────
 const formatDate = (date: Date) => {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
   return {
     dayName: days[date.getDay()],
@@ -67,7 +57,7 @@ const formatDate = (date: Date) => {
 const getThisWeek = () => {
   const today = new Date();
   const start = new Date(today);
-  const diff = today.getDay() === 0 ? -6 : 1 - today.getDay(); // Monday start
+  const diff = today.getDay() === 0 ? -6 : 1 - today.getDay();
   start.setDate(today.getDate() + diff);
 
   return Array.from({ length: 7 }, (_, i) => {
@@ -85,7 +75,7 @@ const getThisWeek = () => {
   });
 };
 
-export default function Excercise() {
+export default function Exercise() {
   const router = useRouter();
   const navigation = useNavigation<any>();
   const weekDays = getThisWeek();
@@ -113,17 +103,15 @@ export default function Excercise() {
         }),
       ]);
 
-      // New API returns plain arrays → just sort and set
       const sortedEquipment = (equipmentRes.data || []).sort(
         (a: string, b: string) => a.localeCompare(b)
       );
-
       const sortedMuscles = (musclesRes.data || []).sort(
         (a: string, b: string) => a.localeCompare(b)
       );
 
-      setEquipment(sortedEquipment.map((name) => ({ name }))); // Convert to { name: "dumbbell" }
-      setMuscles(sortedMuscles.map((name) => ({ name }))); // Same format as before
+      setEquipment(sortedEquipment.map((name: string) => ({ name })));
+      setMuscles(sortedMuscles.map((name: string) => ({ name })));
     } catch (error) {
       console.error("Failed to fetch filters:", error);
     } finally {
@@ -131,7 +119,6 @@ export default function Excercise() {
     }
   };
 
-  // Then call it on mount
   useEffect(() => {
     fetchFilters();
   }, []);
@@ -139,7 +126,7 @@ export default function Excercise() {
   const handleBodyPartPress = (title: string, image: string) => {
     navigation.navigate("exercise-bodypart", {
       bodyPart: title,
-      bodyPartImage: image, // <-- passing the image URL
+      bodyPartImage: image,
     });
   };
 
@@ -155,20 +142,26 @@ export default function Excercise() {
     navigation.navigate("exercise-muscle", { muscle: name });
   };
 
+  const userName = (user?.unsafeMetadata?.name as string) || "Warrior";
+
   const renderBodyPart = ({ item }: any) => (
     <TouchableOpacity
       onPress={() => handleBodyPartPress(item.title, item.image)}
-      className="mr-6 items-center"
-      activeOpacity={0.8}
+      className="mr-4"
+      activeOpacity={0.85}
     >
-      <View className="w-44 h-44 rounded-3xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
+      <View className="w-40 rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100">
         <Image
           source={{ uri: item.image }}
-          className="w-full h-full"
+          className="w-full h-36"
           resizeMode="cover"
         />
+        <View className="p-3 bg-white">
+          <Text className="text-base font-bold text-gray-800 text-center">
+            {item.title}
+          </Text>
+        </View>
       </View>
-      <Text className="mt-4 text-xl font-bold text-gray-800">{item.title}</Text>
     </TouchableOpacity>
   );
 
@@ -179,23 +172,23 @@ export default function Excercise() {
     return (
       <TouchableOpacity
         onPress={() => handleDayPress(item.day, item.fullDate)}
-        className="mr-5"
+        className="mr-4"
         activeOpacity={0.9}
       >
-        <View className="relative">
+        <View className={`relative rounded-2xl overflow-hidden ${isToday ? 'border-2 border-red-500' : ''}`}>
           <Image
             source={item.image}
-            className="w-32 h-40"
+            className="w-28 h-36"
             resizeMode="contain"
           />
-          <View className=" items-center">
-            <Text className="text-black text-xl text-black font-bold drop-shadow-lg">
+          <View className="absolute bottom-0 left-0 right-0 bg-black/50 py-2">
+            <Text className="text-white text-sm font-bold text-center">
               {item.date} {item.month}
             </Text>
           </View>
           {isToday && (
-            <View className="absolute -top-2 right-0 bg-red-600 rounded-full px-4 py-1.5 shadow-lg">
-              <Text className="text-white text-xs font-bold">TODAY</Text>
+            <View className="absolute top-2 right-2 bg-red-500 rounded-full px-2 py-1">
+              <Text className="text-white text-[10px] font-bold">TODAY</Text>
             </View>
           )}
         </View>
@@ -203,14 +196,32 @@ export default function Excercise() {
     );
   };
 
-  // Pill-style cards for equipment & specific muscles
-  const renderPill = (name: string, onPress: () => void) => (
+  const SectionHeader = ({ title, icon }: { title: string; icon: string }) => (
+    <View className="flex-row items-center mb-4">
+      <View className="w-1 h-8 bg-pink-500 rounded-full mr-3" />
+      <Text className="text-2xl font-bold text-gray-900 flex-1">{title}</Text>
+    </View>
+  );
+
+  const renderEquipmentPill = (name: string, onPress: () => void) => (
     <TouchableOpacity
+      key={name}
       onPress={onPress}
-      className="mr-3 mb-3 bg-indigo-100 px-5 py-3 rounded-full border border-indigo-200"
-      activeOpacity={0.8}
+      className="mr-2 mb-2 bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2.5 rounded-full border border-indigo-100"
+      activeOpacity={0.7}
     >
-      <Text className="text-indigo-800 font-semibold capitalize">{name}</Text>
+      <Text className="text-indigo-700 font-semibold capitalize text-sm">{name}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderMusclePill = (name: string, onPress: () => void) => (
+    <TouchableOpacity
+      key={name}
+      onPress={onPress}
+      className="mr-2 mb-2 bg-gradient-to-r from-pink-50 to-rose-50 px-4 py-2.5 rounded-full border border-pink-100"
+      activeOpacity={0.7}
+    >
+      <Text className="text-pink-700 font-semibold capitalize text-sm">{name}</Text>
     </TouchableOpacity>
   );
 
@@ -223,158 +234,125 @@ export default function Excercise() {
             refreshing={refreshing}
             onRefresh={async () => {
               setRefreshing(true);
-              setLoading(true);
-              await fetchFilters(); // Re-use your existing fetch function
+              await fetchFilters();
               setRefreshing(false);
             }}
-            colors={["#ec4899"]} // Pink spinner (matches your theme)
+            colors={["#ec4899"]}
             tintColor="#ec4899"
           />
         }
       >
         {/* Header */}
-        <View className="px-6 pt-8 pb-6 bg-white">
-          <Text className="text-4xl font-extrabold text-gray-900">
-            Hello Warrior
-          </Text>
-          <Text className="text-lg text-gray-600 mt-2">
-            Ready to dominate today?
-          </Text>
+        <View className="px-6 pt-6 pb-4">
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-gray-500 text-base">Welcome back,</Text>
+              <Text className="text-3xl font-extrabold text-gray-900 mt-1">
+                {userName} 💪
+              </Text>
+            </View>
+            <View className="w-12 h-12 bg,100 rounded-full items-center justify-center">
+              <Ionicons name="fitness" size={28} color="#ec4899" />
+            </View>
+          </View>
         </View>
 
-        {/* My Library Section */}
-        <View className="px-6 mt-6">
-          <Text className="text-2xl font-bold text-gray-900 mb-3">
-            {(user.unsafeMetadata.name as string) + "'s" || "My"} Library
-          </Text>
-
+        {/* My Library Card */}
+        <View className="px-6 mt-2">
           <TouchableOpacity
             onPress={() => router.push("/(app)/user-library")}
-            activeOpacity={0.8}
-            className="rounded-2xl overflow-hidden shadow-md border border-gray-200"
+            activeOpacity={0.9}
+            className="rounded-3xl overflow-hidden shadow-xl"
           >
-            {/* Image Wrapper */}
-            <View>
+            <View className="relative">
               <Image
                 source={require("../../../../../assets/bg-image.jpg")}
-                style={{ width: "100%", height: 160 }}
+                style={{ width: "100%", height: 140 }}
                 resizeMode="cover"
               />
-
-              {/* White Text Overlay */}
-              <View className="absolute inset-0 justify-end items-center pb-4">
-                <Text className="text-white text-4xl font-semibold drop-shadow-lg">
-                  User Library
+              <View className="absolute inset-0 bg-black/40" />
+              <View className="absolute inset-0 justify-center items-center">
+                <View className="flex-row items-center">
+                  <MaterialCommunityIcons name="bookshelf" size={28} color="white" />
+                  <Text className="text-white text-2xl font-bold ml-3">
+                    {userName}'s Library
+                  </Text>
+                </View>
+                <Text className="text-white/80 text-sm mt-1">
+                  Your saved exercises & custom workouts
                 </Text>
+              </View>
+              <View className="absolute bottom-3 right-3 bg-white/20 rounded-full p-2">
+                <Ionicons name="arrow-forward" size={20} color="white" />
               </View>
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* Info Note */}
+        {/* Info Tip */}
         <View className="px-6 mt-4">
-          <View className="bg-blue-50 border border-blue-200 px-4 py-3 rounded-2xl">
-            <Text className="text-blue-800 font-medium">
-              Add your own custom exercises to the library, or add them first
-              from our exercise library below to use them in your workouts.
+          <View className="flex-row items-start bg-blue-50 border border-blue-100 p-4 rounded-2xl">
+            <Ionicons name="bulb" size={20} color="#3b82f6" style={{ marginTop: 2 }} />
+            <Text className="text-blue-700 ml-3 flex-1 text-sm leading-5">
+              Create custom exercises or save from our library to use in your workouts!
             </Text>
           </View>
         </View>
 
         {/* Weekly Program */}
-        <View className="mt-10 px-6">
-          <View className="flex-row items-start mb-4">
-            <View
-              className="w-1.5 bg-pink-600 rounded-full mr-3"
-              style={{ height: "100%", minHeight: 32 }}
-            />
-            <Text className="text-3xl font-bold text-gray-800 flex-1 leading-tight">
-              Weekly Program
-            </Text>
-          </View>
-
+        <View className="mt-8 px-6">
+          <SectionHeader title="Weekly Program" icon="calendar" />
           <FlatList
             data={weekDays}
             renderItem={renderWeekDay}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerClassName="py-2"
+            contentContainerStyle={{ paddingVertical: 4 }}
           />
         </View>
 
-        {/* Target Specific BodyPart */}
-        <View className="mt-12 px-6">
-          <View className="flex-row items-start mb-4">
-            <View
-              className="w-1.5 bg-pink-600 rounded-full mr-3"
-              style={{ height: "100%", minHeight: 32 }}
-            />
-            <Text className="text-3xl font-bold text-gray-800 flex-1 leading-tight">
-              Target Specific BodyPart
-            </Text>
-          </View>
-
+        {/* Target Body Parts */}
+        <View className="mt-10 px-6">
+          <SectionHeader title="Target Body Parts" icon="body" />
           <FlatList
             data={bodyParts}
             renderItem={renderBodyPart}
             keyExtractor={(item) => item.id.toString()}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerClassName="py-2"
+            contentContainerStyle={{ paddingVertical: 4 }}
           />
         </View>
 
-        {/* Equipment */}
-        <View className="mt-12 px-6">
-          <View className="flex-row items-start mb-4">
-            <View
-              className="w-1.5 bg-pink-600 rounded-full mr-3"
-              style={{ height: "100%", minHeight: 32 }}
-            />
-            <Text className="text-3xl font-bold text-gray-800 flex-1 leading-tight">
-              Train with Specific Equipment
-            </Text>
-          </View>
-
+        {/* Equipment Section */}
+        <View className="mt-10 px-6">
+          <SectionHeader title="By Equipment" icon="barbell" />
           {loading && !refreshing ? (
-            <Text className="text-gray-500 text-center py-8">
-              Loading equipment...
-            </Text>
+            <View className="py-8 items-center">
+              <Text className="text-gray-400">Loading equipment...</Text>
+            </View>
           ) : (
             <View className="flex-row flex-wrap">
-              {equipment.map((item) => (
-                <View key={item.name}>
-                  {renderPill(item.name, () => handleEquipmentPress(item.name))}
-                </View>
-              ))}
+              {equipment.map((item) =>
+                renderEquipmentPill(item.name, () => handleEquipmentPress(item.name))
+              )}
             </View>
           )}
         </View>
 
-        {/* Specific Muscles */}
-        <View className="mt-12 px-6 pb-10">
-          <View className="flex-row items-start mb-4">
-            <View
-              className="w-1.5 bg-pink-600 rounded-full mr-3"
-              style={{ height: "100%", minHeight: 32 }}
-            />
-            <Text className="text-3xl font-bold text-gray-800 flex-1 leading-tight">
-              Train Specific Muscles For Max Results
-            </Text>
-          </View>
-
+        {/* Muscles Section */}
+        <View className="mt-10 px-6 pb-12">
+          <SectionHeader title="Target Muscles" icon="fitness" />
           {loading && !refreshing ? (
-            <Text className="text-gray-500 text-center py-8">
-              Loading muscles...
-            </Text>
+            <View className="py-8 items-center">
+              <Text className="text-gray-400">Loading muscles...</Text>
+            </View>
           ) : (
             <View className="flex-row flex-wrap">
-              {muscles.map((item) => (
-                <View key={item.name}>
-                  {renderPill(item.name, () => handleMusclePress(item.name))}
-                </View>
-              ))}
+              {muscles.map((item) =>
+                renderMusclePill(item.name, () => handleMusclePress(item.name))
+              )}
             </View>
           )}
         </View>

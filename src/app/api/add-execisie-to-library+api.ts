@@ -8,6 +8,19 @@ export async function POST(req: Request) {
       return Response.json({ error: "Missing userId" }, { status: 400 });
     }
 
+    // Check for duplicate exercise name for this user
+    const existingExercise = await adminClient.fetch(
+      `*[_type == "exercise" && userId == $userId && name == $name][0]`,
+      { userId, name: exercise.name }
+    );
+
+    if (existingExercise) {
+      return Response.json(
+        { error: "duplicate", message: "This exercise is already in your library" },
+        { status: 409 }
+      );
+    }
+
     // 1️⃣ Download image or handle base64
     let imageBuffer: Buffer;
 
