@@ -33,6 +33,9 @@ export default function Profile() {
   const [heightCm, setHeightCm] = useState("");
   const [heightFeet, setHeightFeet] = useState("");
   const [heightInches, setHeightInches] = useState("");
+  const [goal, setGoal] = useState("");
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lbs">("kg");
+  const [heightUnit, setHeightUnit] = useState<"cm" | "ft">("cm");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -46,6 +49,9 @@ export default function Profile() {
       setHeightCm((user.unsafeMetadata.heightCm as string) || "");
       setHeightFeet((user.unsafeMetadata.heightFeet as string) || "");
       setHeightInches((user.unsafeMetadata.heightInches as string) || "");
+      setGoal((user.unsafeMetadata.goal as string) || "");
+      setWeightUnit((user.unsafeMetadata.weightUnit as "kg" | "lbs") || "kg");
+      setHeightUnit((user.unsafeMetadata.heightUnit as "cm" | "ft") || "cm");
     }
   }, [user]);
 
@@ -226,6 +232,9 @@ export default function Profile() {
           heightCm: heightCm,
           heightFeet: heightFeet,
           heightInches: heightInches || "0", // Save as "0" if empty
+          goal: goal.trim(),
+          weightUnit: weightUnit,
+          heightUnit: heightUnit,
         },
       });
       setIsEditing(false);
@@ -249,6 +258,9 @@ export default function Profile() {
       setHeightCm((user.unsafeMetadata.heightCm as string) || "");
       setHeightFeet((user.unsafeMetadata.heightFeet as string) || "");
       setHeightInches((user.unsafeMetadata.heightInches as string) || "");
+      setGoal((user.unsafeMetadata.goal as string) || "");
+      setWeightUnit((user.unsafeMetadata.weightUnit as "kg" | "lbs") || "kg");
+      setHeightUnit((user.unsafeMetadata.heightUnit as "cm" | "ft") || "cm");
     }
   };
 
@@ -325,23 +337,7 @@ export default function Profile() {
             </View>
           )}
 
-          {/* User Library Card */}
-          <TouchableOpacity
-            onPress={() => router.push("/(app)/user-library")}
-            className="bg-white rounded-2xl p-4 mb-6 shadow-sm flex-row items-center border border-purple-100"
-            activeOpacity={0.8}
-          >
-            <View className="bg-purple-100 p-3 rounded-full mr-4">
-              <Ionicons name="library" size={24} color="#9333ea" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-lg font-bold text-gray-800">User Library</Text>
-              <Text className="text-gray-500 text-sm">
-                Your custom exercises & saved activities
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-          </TouchableOpacity>
+
 
           {/* Personal Information Card */}
           <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
@@ -374,6 +370,31 @@ export default function Profile() {
                 <View className="bg-gray-50 rounded-xl p-4">
                   <Text className="text-lg text-gray-800">
                     {name || "Not set"}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Goal */}
+            <View className="mb-4">
+              <Text className="text-sm font-semibold text-gray-600 mb-2">
+                Fitness Goal
+              </Text>
+              {isEditing ? (
+                <View className="flex-row items-center bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <Ionicons name="trophy-outline" size={20} color="#9333ea" />
+                  <TextInput
+                    value={goal}
+                    onChangeText={setGoal}
+                    placeholder="What is your main goal?"
+                    placeholderTextColor="#9ca3af"
+                    className="flex-1 ml-3 text-gray-800"
+                  />
+                </View>
+              ) : (
+                <View className="bg-gray-50 rounded-xl p-4">
+                  <Text className="text-lg text-gray-800">
+                    {goal || "Not set"}
                   </Text>
                 </View>
               )}
@@ -504,16 +525,65 @@ export default function Profile() {
                 <Text className="text-sm font-semibold text-gray-600">
                   Weight
                 </Text>
+                {/* Weight Unit Toggle */}
                 {isEditing && (
-                  <Text className="text-xs text-gray-500">
+                  <View className="flex-row items-center bg-gray-100 p-0.5 rounded-lg">
+                    <TouchableOpacity
+                      onPress={() => setWeightUnit("kg")}
+                      className="px-3 py-1 rounded-md"
+                      style={{
+                        backgroundColor:
+                          weightUnit === "kg" ? "#ffffff" : "transparent",
+                        shadowColor:
+                          weightUnit === "kg" ? "#000" : "transparent",
+                        shadowOpacity: weightUnit === "kg" ? 0.05 : 0,
+                        shadowRadius: 1,
+                        elevation: weightUnit === "kg" ? 1 : 0,
+                      }}
+                    >
+                      <Text
+                        className="text-xs font-semibold"
+                        style={{
+                          color: weightUnit === "kg" ? "#9333ea" : "#6b7280",
+                        }}
+                      >
+                        KG
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setWeightUnit("lbs")}
+                      className="px-3 py-1 rounded-md"
+                      style={{
+                        backgroundColor:
+                          weightUnit === "lbs" ? "#ffffff" : "transparent",
+                        shadowColor:
+                          weightUnit === "lbs" ? "#000" : "transparent",
+                        shadowOpacity: weightUnit === "lbs" ? 0.05 : 0,
+                        shadowRadius: 1,
+                        elevation: weightUnit === "lbs" ? 1 : 0,
+                      }}
+                    >
+                      <Text
+                        className="text-xs font-semibold"
+                        style={{
+                          color: weightUnit === "lbs" ? "#9333ea" : "#6b7280",
+                        }}
+                      >
+                        LBS
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {isEditing && (
+                  <Text className="text-xs text-gray-500 ml-2">
                     Max: {MAX_WEIGHT_KG} kg / {MAX_WEIGHT_LBS.toFixed(0)} lbs
                   </Text>
                 )}
               </View>
               {isEditing ? (
-                <View className="flex-row gap-3">
-                  {/* Weight in KG */}
-                  <View className="flex-1">
+                <View>
+                  {weightUnit === "kg" ? (
+                    /* Weight in KG */
                     <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
                       <Ionicons
                         name="barbell-outline"
@@ -530,10 +600,8 @@ export default function Profile() {
                       />
                       <Text className="text-gray-500 font-medium ml-1">kg</Text>
                     </View>
-                  </View>
-
-                  {/* Weight in LBS */}
-                  <View className="flex-1">
+                  ) : (
+                    /* Weight in LBS */
                     <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
                       <Ionicons
                         name="barbell-outline"
@@ -552,13 +620,15 @@ export default function Profile() {
                         lbs
                       </Text>
                     </View>
-                  </View>
+                  )}
                 </View>
               ) : (
                 <View className="bg-gray-50 rounded-xl p-4">
                   <Text className="text-lg text-gray-800">
                     {weightKg && weightLbs
-                      ? `${weightKg} kg / ${weightLbs} lbs`
+                      ? weightUnit === "kg"
+                        ? `${weightKg} kg`
+                        : `${weightLbs} lbs`
                       : "Not set"}
                   </Text>
                 </View>
@@ -571,86 +641,143 @@ export default function Profile() {
                 <Text className="text-sm font-semibold text-gray-600">
                   Height
                 </Text>
+                {/* Height Unit Toggle */}
                 {isEditing && (
-                  <Text className="text-xs text-gray-500">
+                  <View className="flex-row items-center bg-gray-100 p-0.5 rounded-lg">
+                    <TouchableOpacity
+                      onPress={() => setHeightUnit("cm")}
+                      className="px-3 py-1 rounded-md"
+                      style={{
+                        backgroundColor:
+                          heightUnit === "cm" ? "#ffffff" : "transparent",
+                        shadowColor:
+                          heightUnit === "cm" ? "#000" : "transparent",
+                        shadowOpacity: heightUnit === "cm" ? 0.05 : 0,
+                        shadowRadius: 1,
+                        elevation: heightUnit === "cm" ? 1 : 0,
+                      }}
+                    >
+                      <Text
+                        className="text-xs font-semibold"
+                        style={{
+                          color: heightUnit === "cm" ? "#9333ea" : "#6b7280",
+                        }}
+                      >
+                        CM
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setHeightUnit("ft")}
+                      className="px-3 py-1 rounded-md"
+                      style={{
+                        backgroundColor:
+                          heightUnit === "ft" ? "#ffffff" : "transparent",
+                        shadowColor:
+                          heightUnit === "ft" ? "#000" : "transparent",
+                        shadowOpacity: heightUnit === "ft" ? 0.05 : 0,
+                        shadowRadius: 1,
+                        elevation: heightUnit === "ft" ? 1 : 0,
+                      }}
+                    >
+                      <Text
+                        className="text-xs font-semibold"
+                        style={{
+                          color: heightUnit === "ft" ? "#9333ea" : "#6b7280",
+                        }}
+                      >
+                        FT
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {isEditing && (
+                  <Text className="text-xs text-gray-500 ml-2">
                     Max: {MAX_HEIGHT_FEET} ft / {MAX_HEIGHT_CM.toFixed(0)} cm
                   </Text>
                 )}
               </View>
               {isEditing ? (
                 <View>
-                  {/* Height in CM */}
-                  <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200 mb-3">
-                    <Ionicons name="resize-outline" size={18} color="#9333ea" />
-                    <TextInput
-                      value={heightCm}
-                      onChangeText={handleHeightCmChange}
-                      placeholder="Height"
-                      placeholderTextColor="#9ca3af"
-                      keyboardType="decimal-pad"
-                      className="flex-1 ml-2 text-gray-800"
-                    />
-                    <Text className="text-gray-500 font-medium ml-1">cm</Text>
-                  </View>
+                  {heightUnit === "cm" ? (
+                    /* Height in CM */
+                    <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
+                      <Ionicons
+                        name="resize-outline"
+                        size={18}
+                        color="#9333ea"
+                      />
+                      <TextInput
+                        value={heightCm}
+                        onChangeText={handleHeightCmChange}
+                        placeholder="Height"
+                        placeholderTextColor="#9ca3af"
+                        keyboardType="decimal-pad"
+                        className="flex-1 ml-2 text-gray-800"
+                      />
+                      <Text className="text-gray-500 font-medium ml-1">cm</Text>
+                    </View>
+                  ) : (
+                    /* Height in FT/IN */
+                    <View className="flex-row gap-3">
+                      <View className="flex-1">
+                        <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
+                          <Ionicons
+                            name="resize-outline"
+                            size={18}
+                            color="#9333ea"
+                          />
+                          <TextInput
+                            value={heightFeet}
+                            onChangeText={(value) => {
+                              setHeightFeet(value);
+                              handleHeightFtInChange(value, heightInches);
+                            }}
+                            placeholder="Feet"
+                            placeholderTextColor="#9ca3af"
+                            keyboardType="numeric"
+                            maxLength={2}
+                            className="flex-1 ml-2 text-gray-800"
+                          />
+                          <Text className="text-gray-500 font-medium ml-1">
+                            ft
+                          </Text>
+                        </View>
+                      </View>
 
-                  {/* Height in FT/IN */}
-                  <View className="flex-row gap-3">
-                    <View className="flex-1">
-                      <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
-                        <Ionicons
-                          name="resize-outline"
-                          size={18}
-                          color="#9333ea"
-                        />
-                        <TextInput
-                          value={heightFeet}
-                          onChangeText={(value) => {
-                            setHeightFeet(value);
-                            handleHeightFtInChange(value, heightInches);
-                          }}
-                          placeholder="Feet"
-                          placeholderTextColor="#9ca3af"
-                          keyboardType="numeric"
-                          maxLength={2}
-                          className="flex-1 ml-2 text-gray-800"
-                        />
-                        <Text className="text-gray-500 font-medium ml-1">
-                          ft
-                        </Text>
+                      <View className="flex-1">
+                        <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
+                          <Ionicons
+                            name="resize-outline"
+                            size={18}
+                            color="#9333ea"
+                          />
+                          <TextInput
+                            value={heightInches}
+                            onChangeText={(value) => {
+                              setHeightInches(value);
+                              handleHeightFtInChange(heightFeet, value);
+                            }}
+                            placeholder="Inches"
+                            placeholderTextColor="#9ca3af"
+                            keyboardType="numeric"
+                            maxLength={2}
+                            className="flex-1 ml-2 text-gray-800"
+                          />
+                          <Text className="text-gray-500 font-medium ml-1">
+                            in
+                          </Text>
+                        </View>
                       </View>
                     </View>
-
-                    <View className="flex-1">
-                      <View className="flex-row items-center bg-gray-50 rounded-xl p-3 border border-gray-200">
-                        <Ionicons
-                          name="resize-outline"
-                          size={18}
-                          color="#9333ea"
-                        />
-                        <TextInput
-                          value={heightInches}
-                          onChangeText={(value) => {
-                            setHeightInches(value);
-                            handleHeightFtInChange(heightFeet, value);
-                          }}
-                          placeholder="Inches"
-                          placeholderTextColor="#9ca3af"
-                          keyboardType="numeric"
-                          maxLength={2}
-                          className="flex-1 ml-2 text-gray-800"
-                        />
-                        <Text className="text-gray-500 font-medium ml-1">
-                          in
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
+                  )}
                 </View>
               ) : (
                 <View className="bg-gray-50 rounded-xl p-4">
                   <Text className="text-lg text-gray-800">
                     {heightCm && heightFeet && heightInches
-                      ? `${heightCm} cm / ${heightFeet}'${heightInches}"`
+                      ? heightUnit === "cm"
+                        ? `${heightCm} cm`
+                        : `${heightFeet}'${heightInches}"`
                       : "Not set"}
                   </Text>
                 </View>

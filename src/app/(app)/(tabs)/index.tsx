@@ -1,66 +1,75 @@
-import { Link } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, View, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Page() {
+  const { user } = useUser();
+  const router = useRouter();
+  const userName = user?.unsafeMetadata?.name as string | undefined;
+  const displayName = userName || user?.firstName || "Friend";
+
   return (
-    <SafeAreaView className="flex flex-1">
-      <Header />
-      <Content />
-    </SafeAreaView>
-  );
-}
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <ScrollView className="flex-1 px-6 pt-6">
+        {/* Header */}
+        <View className="mb-8">
+          <Text className="text-gray-500 text-lg font-medium mb-1">
+            Welcome back,
+          </Text>
+          <Text className="text-3xl font-bold text-gray-800">
+            {displayName}
+          </Text>
+        </View>
 
-function Content() {
-  return (
-    <View className="flex-1">
-      <View className="py-12 md:py-24 lg:py-32 xl:py-48">
-        <View className="px-4 md:px-6">
-          <View className="flex flex-col items-center gap-4 text-center">
-            <Text
-              role="heading"
-              className="text-3xl text-center native:text-5xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl"
-            >
-              Expo + Tailwind (NativeWind) Template
+        {/* User Library Card */}
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/user-library")}
+          className="bg-white rounded-2xl p-6 shadow-sm flex-row items-center border border-purple-100 mb-6"
+          activeOpacity={0.8}
+        >
+          <View className="bg-purple-100 p-4 rounded-full mr-5">
+            <Ionicons name="library" size={28} color="#9333ea" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-gray-800 mb-1">
+              User Library
             </Text>
-
-            <Text className="mx-auto max-w-[700px] text-lg text-center md:text-xl">
-              This sets up Expo and Tailwind (NativeWind)
+            <Text className="text-gray-500 text-sm leading-5">
+              Access your custom exercises, saved workouts, and routines.
             </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
+        </TouchableOpacity>
 
-            <View className="gap-4">
-              <Link
-                suppressHighlighting
-                className="flex h-9 items-center justify-center overflow-hidden rounded-md bg-green-700 px-4 py-2 text-sm font-medium text-gray-50 web:shadow ios:shadow transition-colors hover:bg-gray-900/90 active:bg-gray-400/90 web:focus-visible:outline-none web:focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
-                href=""
+        {/* Quick Actions / Future Content */}
+        <View>
+          <Text className="text-lg font-bold text-gray-800 mb-4">
+            Quick Actions
+          </Text>
+          <View className="flex-row gap-4">
+               <TouchableOpacity
+                onPress={() => router.push("/(app)/(tabs)/workout")}
+                className="flex-1 bg-purple-600 rounded-2xl p-4 shadow-sm items-center justify-center aspect-square"
+                activeOpacity={0.8}
               >
-                like my template? give it a star ⭐
-              </Link>
-            </View>
+                <Ionicons name="barbell" size={32} color="white" />
+                <Text className="text-white font-bold mt-2">Workout</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={() => router.push("/(app)/(tabs)/history")}
+                className="flex-1 bg-white rounded-2xl p-4 shadow-sm items-center justify-center aspect-square border border-gray-100"
+                activeOpacity={0.8}
+              >
+                <Ionicons name="time-outline" size={32} color="#9333ea" />
+                <Text className="text-gray-800 font-bold mt-2">History</Text>
+              </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </View>
-  );
-}
-
-function Header() {
-  return (
-    <View>
-      <View className="px-4 lg:px-6 h-14 flex items-center flex-row justify-between ">
-        <Link className="font-bold flex-1 items-center justify-center" href="/">
-          Ruka
-        </Link>
-        <View className="">
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href=""
-          >
-            hello
-          </Link>
-        </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
