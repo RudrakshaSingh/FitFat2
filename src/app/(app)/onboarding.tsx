@@ -35,6 +35,9 @@ export default function Onboarding() {
   const [heightCm, setHeightCm] = useState("");
   const [heightFeet, setHeightFeet] = useState("");
   const [heightInches, setHeightInches] = useState("");
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lbs">("kg");
+  const [heightUnit, setHeightUnit] = useState<"cm" | "ft">("cm");
+  const [goal, setGoal] = useState("");
 
   // Convert kg to lbs with limit check
   const handleWeightKgChange = (value: string) => {
@@ -196,6 +199,12 @@ export default function Onboarding() {
         );
         return;
       }
+      setStep(6);
+    } else if (step === 6) {
+      if (!goal.trim()) {
+        Alert.alert("Error", "Please share your goal with us");
+        return;
+      }
       handleComplete();
     }
   };
@@ -219,6 +228,9 @@ export default function Onboarding() {
           heightFeet: heightFeet,
           heightInches: heightInches || "0", // Save as "0" if empty
           heightCm: heightCm,
+          weightUnit: weightUnit,
+          heightUnit: heightUnit,
+          goal: goal,
           onboardingCompleted: true,
         },
       });
@@ -233,7 +245,7 @@ export default function Onboarding() {
 
   const renderProgressBar = () => (
     <View className="flex-row gap-2 mb-8">
-      {[1, 2, 3, 4, 5].map((s) => (
+      {[1, 2, 3, 4, 5, 6].map((s) => (
         <View
           key={s}
           className={`flex-1 h-2 rounded-full ${
@@ -419,52 +431,95 @@ export default function Onboarding() {
                 Max: {MAX_WEIGHT_KG} kg / {MAX_WEIGHT_LBS.toFixed(0)} lbs
               </Text>
 
-              <View className="flex-row gap-4">
-                {/* Weight in KG */}
-                <View className="flex-1">
-                  <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
-                    Kilograms
-                  </Text>
-                  <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                    <Ionicons
-                      name="barbell-outline"
-                      size={20}
-                      color="#9333ea"
-                    />
-                    <TextInput
-                      value={weightKg}
-                      onChangeText={handleWeightKgChange}
-                      placeholder="Weight"
-                      placeholderTextColor="#9ca3af"
-                      keyboardType="decimal-pad"
-                      className="flex-1 ml-2 text-gray-800 text-base"
-                    />
-                    <Text className="text-gray-500 font-medium ml-1">kg</Text>
-                  </View>
-                </View>
 
-                {/* Weight in LBS */}
-                <View className="flex-1">
-                  <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
-                    Pounds
+              {/* Weight Unit Toggle */}
+              <View className="flex-row items-center justify-center mb-6 bg-gray-100 p-1 rounded-xl self-center">
+                <TouchableOpacity
+                  onPress={() => setWeightUnit("kg")}
+                  className="px-6 py-2 rounded-lg"
+                  style={{
+                    backgroundColor: weightUnit === "kg" ? "#ffffff" : "transparent",
+                    shadowColor: weightUnit === "kg" ? "#000" : "transparent",
+                    shadowOpacity: weightUnit === "kg" ? 0.1 : 0,
+                    shadowRadius: 2,
+                    elevation: weightUnit === "kg" ? 2 : 0,
+                  }}
+                >
+                  <Text
+                    className="font-semibold"
+                    style={{ color: weightUnit === "kg" ? "#9333ea" : "#6b7280" }}
+                  >
+                    KG
                   </Text>
-                  <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                    <Ionicons
-                      name="barbell-outline"
-                      size={20}
-                      color="#9333ea"
-                    />
-                    <TextInput
-                      value={weightLbs}
-                      onChangeText={handleWeightLbsChange}
-                      placeholder="Weight"
-                      placeholderTextColor="#9ca3af"
-                      keyboardType="decimal-pad"
-                      className="flex-1 ml-2 text-gray-800 text-base"
-                    />
-                    <Text className="text-gray-500 font-medium ml-1">lbs</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setWeightUnit("lbs")}
+                  className="px-6 py-2 rounded-lg"
+                  style={{
+                    backgroundColor: weightUnit === "lbs" ? "#ffffff" : "transparent",
+                    shadowColor: weightUnit === "lbs" ? "#000" : "transparent",
+                    shadowOpacity: weightUnit === "lbs" ? 0.1 : 0,
+                    shadowRadius: 2,
+                    elevation: weightUnit === "lbs" ? 2 : 0,
+                  }}
+                >
+                  <Text
+                    className="font-semibold"
+                    style={{ color: weightUnit === "lbs" ? "#9333ea" : "#6b7280" }}
+                  >
+                    LBS
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View>
+                {weightUnit === "kg" ? (
+                  /* Weight in KG */
+                  <View>
+                    <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
+                      Kilograms
+                    </Text>
+                    <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                      <Ionicons
+                        name="barbell-outline"
+                        size={20}
+                        color="#9333ea"
+                      />
+                      <TextInput
+                        value={weightKg}
+                        onChangeText={handleWeightKgChange}
+                        placeholder="Weight"
+                        placeholderTextColor="#9ca3af"
+                        keyboardType="decimal-pad"
+                        className="flex-1 ml-2 text-gray-800 text-base"
+                      />
+                      <Text className="text-gray-500 font-medium ml-1">kg</Text>
+                    </View>
                   </View>
-                </View>
+                ) : (
+                  /* Weight in LBS */
+                  <View>
+                    <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
+                      Pounds
+                    </Text>
+                    <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                      <Ionicons
+                        name="barbell-outline"
+                        size={20}
+                        color="#9333ea"
+                      />
+                      <TextInput
+                        value={weightLbs}
+                        onChangeText={handleWeightLbsChange}
+                        placeholder="Weight"
+                        placeholderTextColor="#9ca3af"
+                        keyboardType="decimal-pad"
+                        className="flex-1 ml-2 text-gray-800 text-base"
+                      />
+                      <Text className="text-gray-500 font-medium ml-1">lbs</Text>
+                    </View>
+                  </View>
+                )}
               </View>
             </View>
           )}
@@ -485,79 +540,188 @@ export default function Onboarding() {
                 Max: {MAX_HEIGHT_FEET} ft / {MAX_HEIGHT_CM.toFixed(0)} cm
               </Text>
 
-              {/* Height in CM */}
-              <View className="mb-4">
-                <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
-                  Centimeters
-                </Text>
-                <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                  <Ionicons name="resize-outline" size={20} color="#9333ea" />
-                  <TextInput
-                    value={heightCm}
-                    onChangeText={handleHeightCmChange}
-                    placeholder="Height"
-                    placeholderTextColor="#9ca3af"
-                    keyboardType="decimal-pad"
-                    className="flex-1 ml-2 text-gray-800 text-base"
-                  />
-                  <Text className="text-gray-500 font-medium ml-1">cm</Text>
-                </View>
+              {/* Height Unit Toggle */}
+              <View className="flex-row items-center justify-center mb-6 bg-gray-100 p-1 rounded-xl self-center">
+                <TouchableOpacity
+                  onPress={() => setHeightUnit("cm")}
+                  className="px-6 py-2 rounded-lg"
+                  style={{
+                    backgroundColor: heightUnit === "cm" ? "#ffffff" : "transparent",
+                    shadowColor: heightUnit === "cm" ? "#000" : "transparent",
+                    shadowOpacity: heightUnit === "cm" ? 0.1 : 0,
+                    shadowRadius: 2,
+                    elevation: heightUnit === "cm" ? 2 : 0,
+                  }}
+                >
+                  <Text
+                    className="font-semibold"
+                    style={{ color: heightUnit === "cm" ? "#9333ea" : "#6b7280" }}
+                  >
+                    CM
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setHeightUnit("ft")}
+                  className="px-6 py-2 rounded-lg"
+                  style={{
+                    backgroundColor: heightUnit === "ft" ? "#ffffff" : "transparent",
+                    shadowColor: heightUnit === "ft" ? "#000" : "transparent",
+                    shadowOpacity: heightUnit === "ft" ? 0.1 : 0,
+                    shadowRadius: 2,
+                    elevation: heightUnit === "ft" ? 2 : 0,
+                  }}
+                >
+                  <Text
+                    className="font-semibold"
+                    style={{ color: heightUnit === "ft" ? "#9333ea" : "#6b7280" }}
+                  >
+                    FT/IN
+                  </Text>
+                </TouchableOpacity>
               </View>
 
-              {/* Height in FT/IN */}
-              <View>
-                <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
-                  Feet & Inches
-                </Text>
-                <View className="flex-row gap-4">
-                  {/* Feet */}
-                  <View className="flex-1">
-                    <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                      <Ionicons
-                        name="resize-outline"
-                        size={20}
-                        color="#9333ea"
-                      />
-                      <TextInput
-                        value={heightFeet}
-                        onChangeText={(value) => {
-                          setHeightFeet(value);
-                          handleHeightFtInChange(value, heightInches);
-                        }}
-                        placeholder="Feet"
-                        placeholderTextColor="#9ca3af"
-                        keyboardType="numeric"
-                        maxLength={2}
-                        className="flex-1 ml-2 text-gray-800 text-base"
-                      />
-                      <Text className="text-gray-500 font-medium ml-1">ft</Text>
-                    </View>
+              {heightUnit === "cm" ? (
+                /* Height in CM */
+                <View className="mb-4">
+                  <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
+                    Centimeters
+                  </Text>
+                  <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                    <Ionicons name="resize-outline" size={20} color="#9333ea" />
+                    <TextInput
+                      value={heightCm}
+                      onChangeText={handleHeightCmChange}
+                      placeholder="Height"
+                      placeholderTextColor="#9ca3af"
+                      keyboardType="decimal-pad"
+                      className="flex-1 ml-2 text-gray-800 text-base"
+                    />
+                    <Text className="text-gray-500 font-medium ml-1">cm</Text>
                   </View>
+                </View>
+              ) : (
+                /* Height in FT/IN */
+                <View>
+                  <Text className="text-sm font-semibold text-gray-700 mb-2 ml-1">
+                    Feet & Inches
+                  </Text>
+                  <View className="flex-row gap-4">
+                    {/* Feet */}
+                    <View className="flex-1">
+                      <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                        <Ionicons
+                          name="resize-outline"
+                          size={20}
+                          color="#9333ea"
+                        />
+                        <TextInput
+                          value={heightFeet}
+                          onChangeText={(value) => {
+                            setHeightFeet(value);
+                            handleHeightFtInChange(value, heightInches);
+                          }}
+                          placeholder="Feet"
+                          placeholderTextColor="#9ca3af"
+                          keyboardType="numeric"
+                          maxLength={2}
+                          className="flex-1 ml-2 text-gray-800 text-base"
+                        />
+                        <Text className="text-gray-500 font-medium ml-1">ft</Text>
+                      </View>
+                    </View>
 
-                  {/* Inches */}
-                  <View className="flex-1">
-                    <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                      <Ionicons
-                        name="resize-outline"
-                        size={20}
-                        color="#9333ea"
-                      />
-                      <TextInput
-                        value={heightInches}
-                        onChangeText={(value) => {
-                          setHeightInches(value);
-                          handleHeightFtInChange(heightFeet, value);
-                        }}
-                        placeholder="Inches"
-                        placeholderTextColor="#9ca3af"
-                        keyboardType="numeric"
-                        maxLength={2}
-                        className="flex-1 ml-2 text-gray-800 text-base"
-                      />
-                      <Text className="text-gray-500 font-medium ml-1">in</Text>
+                    {/* Inches */}
+                    <View className="flex-1">
+                      <View className="flex-row items-center bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                        <Ionicons
+                          name="resize-outline"
+                          size={20}
+                          color="#9333ea"
+                        />
+                        <TextInput
+                          value={heightInches}
+                          onChangeText={(value) => {
+                            setHeightInches(value);
+                            handleHeightFtInChange(heightFeet, value);
+                          }}
+                          placeholder="Inches"
+                          placeholderTextColor="#9ca3af"
+                          keyboardType="numeric"
+                          maxLength={2}
+                          className="flex-1 ml-2 text-gray-800 text-base"
+                        />
+                        <Text className="text-gray-500 font-medium ml-1">in</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
+              )}
+            </View>
+          )}
+
+          {/* Step 6: Goal */}
+          {step === 6 && (
+            <View>
+              <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-6 self-center">
+                <Ionicons name="flag" size={40} color="#9333ea" />
+              </View>
+              <Text className="text-4xl font-bold text-gray-800 text-center mb-3">
+                What's your goal?
+              </Text>
+              <Text className="text-lg text-gray-600 text-center mb-6">
+                Tell us what you want to achieve
+              </Text>
+
+              {/* Goal Input */}
+              <View className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 mb-6">
+                <TextInput
+                  value={goal}
+                  onChangeText={setGoal}
+                  placeholder="e.g. I want to lose weight..."
+                  placeholderTextColor="#9ca3af"
+                  multiline
+                  numberOfLines={3}
+                  className="text-gray-800 text-lg h-24"
+                  textAlignVertical="top"
+                />
+              </View>
+
+              {/* Suggestions */}
+              <Text className="text-sm font-semibold text-gray-700 mb-3 ml-1">
+                Suggestions
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {[
+                  "Lose 5kg in one month",
+                  "Gain muscle mass",
+                  "Build a better upper body",
+                  "Improve execution consistency",
+                ].map((suggestion, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => setGoal(suggestion)}
+                    className="bg-purple-50 rounded-full px-4 py-2 border border-purple-100"
+                    activeOpacity={0.7}
+                  >
+                    <Text className="text-purple-700 font-medium">
+                      {suggestion}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Note */}
+              <View className="mt-8 flex-row items-start bg-blue-50 p-4 rounded-xl">
+                <Ionicons
+                  name="information-circle"
+                  size={24}
+                  color="#3b82f6"
+                  style={{ marginTop: -2 }}
+                />
+                <Text className="text-blue-700 ml-3 flex-1 text-sm leading-5">
+                  This information is necessary to get personalized coaching
+                  tailored to your specific needs.
+                </Text>
               </View>
             </View>
           )}
@@ -575,7 +739,7 @@ export default function Onboarding() {
           ) : (
             <View className="flex-row items-center justify-center">
               <Text className="text-white font-bold text-lg mr-2">
-                {step === 5 ? "Complete" : "Continue"}
+                {step === 6 ? "Complete" : "Continue"}
               </Text>
               <Ionicons name="arrow-forward" size={20} color="white" />
             </View>

@@ -125,7 +125,7 @@ export default function HistoryPage() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
-        <View className="px-6 py-4 bg-white border-b">
+        <View className="px-6 py-4 bg-white">
           <Text className="text-2xl font-bold text-gray-900">
             Workout History
           </Text>

@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
 import { useSSO } from "@clerk/clerk-expo";
-import { View, Platform, TouchableOpacity, Text } from "react-native";
+import { View, Platform, TouchableOpacity, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 
@@ -46,9 +46,11 @@ export default function GoogleSignIn() {
 
   const router = useRouter();
   const { startSSOFlow } = useSSO();
+  const [isLoading, setIsLoading] = useState(false);
 
   const onPress = useCallback(async () => {
     try {
+      setIsLoading(true);
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -63,20 +65,28 @@ export default function GoogleSignIn() {
       }
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
+      setIsLoading(false);
     }
   }, [router]);
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="bg-white border-2 border-gray-200 rounded-xl py-4 shadow-sm"
+      disabled={isLoading}
+      className={`bg-white border-2 border-gray-200 rounded-xl py-4 shadow-sm ${
+        isLoading ? "opacity-70" : ""
+      }`}
       activeOpacity={0.8}
     >
       <View className="flex-row items-center justify-center">
-        <GoogleIcon size={20} />
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#4B5563" /> // gray-600
+        ) : (
+          <GoogleIcon size={20} />
+        )}
 
         <Text className="text-gray-900 font-semibold text-lg ml-3">
-          Continue with Google
+          {isLoading ? "Signing in..." : "Continue with Google"}
         </Text>
       </View>
     </TouchableOpacity>
