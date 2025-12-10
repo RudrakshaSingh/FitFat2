@@ -178,23 +178,21 @@ export default function Exercise() {
         className="mr-4"
         activeOpacity={0.9}
       >
-        <View className={`relative rounded-2xl overflow-hidden ${isToday ? 'border-2 border-red-500' : ''}`}>
+        <View className="relative rounded-2xl overflow-hidden mb-2">
           <Image
             source={item.image}
             className="w-28 h-36"
             resizeMode="contain"
           />
-          <View className="absolute bottom-0 left-0 right-0 bg-black/50 py-2">
-            <Text className="text-white text-sm font-bold text-center">
-              {item.date} {item.month}
-            </Text>
-          </View>
           {isToday && (
             <View className="absolute top-2 right-2 bg-red-500 rounded-full px-2 py-1">
               <Text className="text-white text-[10px] font-bold">TODAY</Text>
             </View>
           )}
         </View>
+        <Text className={`text-sm font-bold text-center ${isToday ? 'text-red-500' : 'text-gray-600'}`}>
+          {item.date} {item.month}
+        </Text>
       </TouchableOpacity>
     );
   };
