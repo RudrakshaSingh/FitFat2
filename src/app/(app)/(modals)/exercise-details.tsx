@@ -93,12 +93,19 @@ export default function ExerciseDetail() {
         {/* Hero Section with GIF */}
         <View className="relative">
           {/* GIF Container */}
-          <View className="w-full h-[420px] bg-gray-900">
-            <Image
-              source={{ uri: exercise.gifUrl }}
-              className="w-full h-full"
-              resizeMode="contain"
-            />
+          <View className="w-full h-[420px] bg-gray-900 justify-center items-center">
+            {exercise.gifUrl ? (
+              <Image
+                source={{ uri: exercise.gifUrl }}
+                className="w-full h-full"
+                resizeMode="contain"
+              />
+            ) : (
+                <View className="items-center justify-center opacity-50">
+                     <Ionicons name="barbell-outline" size={100} color="white" />
+                     <Text className="text-white mt-4 font-semibold">No Image Available</Text>
+                </View>
+            )}
             {/* Gradient Overlay */}
             <View className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
           </View>
@@ -220,6 +227,45 @@ export default function ExerciseDetail() {
                 </View>
               )}
             </View>
+
+            {/* Video section */}
+            {exercise.videoUrl && (
+              <View className="mb-8">
+                <Text className="text-lg font-bold text-gray-900 mb-3">
+                  Video Tutorial
+                </Text>
+
+                <TouchableOpacity
+                  className="bg-white border border-gray-200 rounded-2xl p-4 flex-row items-center shadow-sm"
+                    // @ts-ignore
+                  onPress={() => {
+                        let url = exercise.videoUrl;
+                        if (url && !/^https?:\/\//i.test(url)) {
+                            url = 'https://' + url;
+                        }
+                        import('react-native').then(({ Linking }) => {
+                            Linking.openURL(url);
+                        });
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View className="w-12 h-12 bg-red-50 rounded-full items-center justify-center mr-4">
+                    <Ionicons name="play" size={24} color="#EF4444" />
+                  </View>
+
+                  <View className="flex-1">
+                    <Text className="text-gray-900 font-bold text-base">
+                      Watch Demo
+                    </Text>
+                    <Text className="text-gray-500 text-sm">
+                      Open video link
+                    </Text>
+                  </View>
+                  
+                  <Ionicons name="open-outline" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Instructions */}
             {exercise.instructions?.length > 0 && (

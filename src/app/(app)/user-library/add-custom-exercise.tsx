@@ -62,10 +62,8 @@ export default function AddCustomExercise() {
       Alert.alert("Error", "Please enter an exercise name");
       return;
     }
-    if (!image) {
-      Alert.alert("Error", "Please select an image");
-      return;
-    }
+    // Image is now optional
+
 
     setSubmitting(true);
 
@@ -82,8 +80,10 @@ export default function AddCustomExercise() {
             target: target || undefined,
             description,
             difficulty,
-            gifUrl: image, // Naming it gifUrl to match API expectation, but it contains base64/uri
-            videoUrl: videoUrl || undefined,
+            gifUrl: image || undefined, // Naming it gifUrl to match API expectation, but it contains base64/uri
+            videoUrl: videoUrl.trim() 
+                ? (/^https?:\/\//i.test(videoUrl.trim()) ? videoUrl.trim() : `https://${videoUrl.trim()}`) 
+                : undefined,
           },
         }),
       });
@@ -129,7 +129,7 @@ export default function AddCustomExercise() {
 
         {/* Image Picker */}
         <View className="mb-6">
-          <Text className="text-sm font-semibold text-gray-700 mb-2">Image</Text>
+          <Text className="text-sm font-semibold text-gray-700 mb-2">Image (Optional)</Text>
           <TouchableOpacity
             onPress={pickImage}
             className="h-48 bg-white border border-dashed border-gray-300 rounded-xl justify-center items-center overflow-hidden"

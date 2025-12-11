@@ -22,25 +22,33 @@ export async function POST(req: Request) {
     }
 
     // 1️⃣ Download image or handle base64
-    let imageBuffer: Buffer;
+    let imageAssetDescriptor = undefined;
 
-    if (exercise.gifUrl.startsWith("data:")) {
-      // Handle Base64 Data URI
-      const base64Data = exercise.gifUrl.split(";base64,")[1];
-      imageBuffer = Buffer.from(base64Data, "base64");
-    } else {
-      // Handle Remote URL
-      const res = await fetch(exercise.gifUrl);
-      const arrayBuffer = await res.arrayBuffer();
-      imageBuffer = Buffer.from(new Uint8Array(arrayBuffer));
+    if (exercise.gifUrl) {
+      let imageBuffer: Buffer;
+
+      if (exercise.gifUrl.startsWith("data:")) {
+        // Handle Base64 Data URI
+        const base64Data = exercise.gifUrl.split(";base64,")[1];
+        imageBuffer = Buffer.from(base64Data, "base64");
+      } else {
+        // Handle Remote URL
+        const res = await fetch(exercise.gifUrl);
+        const arrayBuffer = await res.arrayBuffer();
+        imageBuffer = Buffer.from(new Uint8Array(arrayBuffer));
+      }
+
+      // 3️⃣ Upload the buffer to Sanity
+      const imageAsset = await adminClient.assets.upload("image", imageBuffer, {
+        filename: `${exercise.name}.gif`,
+      });
+      
+      imageAssetDescriptor = {
+        _type: "image",
+        asset: { _ref: imageAsset._id },
+        alt: exercise.name,
+      };
     }
-
-    // 2️⃣ Conversion handled above
-
-    // 3️⃣ Upload the buffer to Sanity
-    const imageAsset = await adminClient.assets.upload("image", imageBuffer, {
-      filename: `${exercise.name}.gif`,
-    });
 
     // 4️⃣ Build valid Exercise document
     const exerciseData = {
@@ -50,12 +58,8 @@ export async function POST(req: Request) {
       target: exercise.target || undefined,
       description: exercise.description,
       difficulty: exercise.difficulty || "beginner",
-      image: {
-        _type: "image",
-        asset: { _ref: imageAsset._id },
-        alt: exercise.name,
-      },
-      videoUrl: undefined,
+      image: imageAssetDescriptor,
+      videoUrl: exercise.videoUrl,
       isActive: true,
     };
 

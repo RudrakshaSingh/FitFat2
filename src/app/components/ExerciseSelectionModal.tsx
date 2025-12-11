@@ -10,15 +10,18 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useWorkoutStore } from "store/workout-store";
+import { useUser } from "@clerk/clerk-expo";
 import ExerciseCard from "./ExerciseCard";
 import { Exercise } from "@/lib/sanity/type";
 import { client } from "@/lib/sanity/client";
 import { defineQuery } from "groq";
 
-const exerciseQuery = defineQuery('*[_type == "exercise"]');
+// Query moved inside component to use userId
+
 
 interface ExerciseSelectionModalProps {
   visible: boolean;
@@ -30,17 +33,19 @@ export default function ExerciseSelectionModal({
   onClose,
 }: ExerciseSelectionModalProps) {
   const router = useRouter();
+  const { user } = useUser();
   const { addExerciseToWorkout } = useWorkoutStore();
   const [exercises, setExercises] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExercises, setFilteredExercises] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && user?.id) {
       fetchExercises();
     }
-  }, [visible]);
+  }, [visible, user?.id]);
 
   useEffect(() => {
     const cleanedQuery = searchQuery.trim().replace(/\s+/g, " ").toLowerCase();
@@ -52,12 +57,22 @@ export default function ExerciseSelectionModal({
   }, [searchQuery, exercises]);
 
   const fetchExercises = async () => {
+    if (!user?.id) return;
+    
     try {
-      const exercises = await client.fetch(exerciseQuery);
+      // Don't set isLoading(true) here if refreshing, handled by refreshing state
+      if (!refreshing) setIsLoading(true);
+      
+      const exercises = await client.fetch(
+        defineQuery('*[_type == "exercise" && userId == $userId]'),
+        { userId: user.id }
+      );
       setExercises(exercises);
       setFilteredExercises(exercises);
     } catch (error) {
       console.error("Error fetching exercises:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -137,6 +152,7 @@ export default function ExerciseSelectionModal({
             paddingTop: 16,
             paddingBottom: 32,
             paddingHorizontal: 16,
+            flexGrow: 1, // Ensures empty component centers correctly
           }}
           refreshControl={
             <RefreshControl
@@ -148,15 +164,29 @@ export default function ExerciseSelectionModal({
           }
           ListEmptyComponent={
             <View className="flex-1 items-center justify-center py-20">
-              <Ionicons name="fitness-outline" size={64} color="#D1D5DB" />
-              <Text className="text-lg font-semibold text-gray-400 mt-4">
-                {searchQuery ? "No exercises found" : "Loading exercises..."}
-              </Text>
-              <Text className="text-sm text-gray-400 mt-2">
-                {searchQuery
-                  ? "Try adjusting your search"
-                  : "Please wait a moment"}
-              </Text>
+              {isLoading ? (
+                <>
+                  <ActivityIndicator size="large" color="#3B82F6" />
+                  <Text className="text-lg font-semibold text-gray-400 mt-4">
+                    Loading exercises...
+                  </Text>
+                  <Text className="text-sm text-gray-400 mt-2">
+                    Please wait a moment
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="fitness-outline" size={64} color="#D1D5DB" />
+                  <Text className="text-lg font-semibold text-gray-400 mt-4">
+                    {searchQuery ? "No exercises found" : "No exercises in your library"}
+                  </Text>
+                  <Text className="text-sm text-gray-400 mt-2 text-center max-w-[250px]">
+                    {searchQuery
+                      ? "Try adjusting your search"
+                      : "Create your first exercise to get started"}
+                  </Text>
+                </>
+              )}
             </View>
           }
         />

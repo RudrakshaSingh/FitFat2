@@ -77,41 +77,76 @@ export default function ExerciseDetail() {
 
   const handleDelete = async () => {
     if (!exercise || !user) return;
+    if (loading) return;
 
-    Alert.alert(
-      "Delete Exercise",
-      "Are you sure you want to delete this exercise? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            setLoading(true);
-            try {
-              const response = await fetch("/api/delete-exercise", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: exercise._id, userId: user.id }),
-              });
-              
-              const data = await response.json();
+    setLoading(true);
 
-              if (response.ok) {
-                 router.back();
-              } else {
-                 Alert.alert("Error", data.error || "Failed to delete exercise");
-                 setLoading(false);
-              }
-            } catch (error) {
-              console.error("Delete error:", error);
-              Alert.alert("Error", "Something went wrong.");
-              setLoading(false);
-            }
-          },
-        },
-      ]
-    );
+    try {
+        // Check for references first
+        const count = await client.fetch(
+            `count(*[_type == "workout" && references($id)])`,
+            { id: exercise._id }
+        );
+
+        if (count > 0) {
+            setLoading(false); // Stop loading to show alert
+            Alert.alert(
+                "⚠️ Usage Warning",
+                `This exercise is used in ${count} workout(s). \n\nDeleting it will PERMANENTLY DELETE those entire workout logs from your history.\n\nThis cannot be undone.`,
+                [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                        text: "Delete All & History",
+                        style: "destructive",
+                        onPress: () => performDelete(true),
+                    },
+                ]
+            );
+        } else {
+             // No references, confirm standard delete
+             setLoading(false);
+             Alert.alert(
+                "Delete Exercise",
+                "Are you sure you want to delete this exercise?",
+                [
+                    { text: "Cancel", style: "cancel" },
+                    { 
+                        text: "Delete", 
+                        style: "destructive", 
+                        onPress: () => performDelete(false) 
+                    }
+                ]
+             );
+        }
+    } catch (error) {
+        console.error("Check references error:", error);
+        setLoading(false);
+        Alert.alert("Error", "Could not verify exercise usage.");
+    }
+  };
+
+  const performDelete = async (cascade: boolean) => {
+    setLoading(true);
+    try {
+        const response = await fetch("/api/delete-exercise", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: exercise?._id, userId: user?.id, cascade }),
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+            router.back();
+        } else {
+            Alert.alert("Error", data.error || "Failed to delete exercise");
+            setLoading(false);
+        }
+    } catch (error) {
+        console.error("Delete error:", error);
+        Alert.alert("Error", "Something went wrong.");
+        setLoading(false);
+    }
   };
 
   if (loading) {
@@ -224,7 +259,13 @@ export default function ExerciseDetail() {
 
               <TouchableOpacity
                 className="bg-white border border-gray-200 rounded-2xl p-4 flex-row items-center shadow-sm"
-                onPress={() => Linking.openURL(exercise.videoUrl!)}
+                onPress={() => {
+                    let url = exercise.videoUrl;
+                    if (url && !/^https?:\/\//i.test(url)) {
+                        url = 'https://' + url;
+                    }
+                    Linking.openURL(url!);
+                }}
                 activeOpacity={0.7}
               >
                 <View className="w-12 h-12 bg-red-50 rounded-full items-center justify-center mr-4">
