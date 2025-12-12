@@ -15,7 +15,7 @@ export const client = createClient(config);
 //admin client for mutations and other admin tasks
 export const adminConfig = {
   ...config,
-  token: process.env.SANITY_API_TOKEN,
+  token: process.env.EXPO_PUBLIC_SANITY_API_TOKEN,
 };
 export const adminClient = createClient(adminConfig);
 

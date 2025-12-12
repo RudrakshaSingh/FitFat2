@@ -7,12 +7,14 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 
 const MAX_WEIGHT_KG = 200;
 const MAX_WEIGHT_LBS = 440.9; // 200 kg in lbs
@@ -304,49 +306,102 @@ export default function Profile() {
         keyboardOpeningTime={0}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="px-6 py-4">
-          {/* Header */}
-          <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-3xl font-bold text-gray-800">Profile</Text>
-            {!isEditing && (
-              <TouchableOpacity
-                onPress={() => setIsEditing(true)}
-                className="bg-purple-600 rounded-xl px-4 py-2 flex-row items-center"
-                activeOpacity={0.8}
-              >
-                <Ionicons name="pencil" size={16} color="white" />
-                <Text className="text-white font-semibold ml-2">Edit</Text>
-              </TouchableOpacity>
-            )}
+        <View className="pb-8">
+          {/* Header & Avatar Section */}
+          <View className="px-6 pt-2 mb-6">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-3xl font-bold text-gray-800">Profile</Text>
+              {!isEditing && (
+                <TouchableOpacity
+                  onPress={() => setIsEditing(true)}
+                  className="bg-purple-100 rounded-full p-2.5"
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="pencil" size={20} color="#9333ea" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View className="items-center">
+              <View className="shadow-lg shadow-purple-200">
+                <View className="p-1 bg-white rounded-full">
+                  <Image
+                    source={{
+                      uri: user?.imageUrl || "https://bg.adhoc.team/avatars/default.png",
+                    }}
+                    className="w-28 h-28 rounded-full"
+                  />
+                </View>
+                {/* Status Badge */}
+                <View className="absolute bottom-1 right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-white" />
+              </View>
+
+              {!isEditing && (
+                <View className="mt-4 items-center">
+                  <Text className="text-2xl font-bold text-gray-800">
+                    {name || user?.fullName || "Fitness Enthusiast"}
+                  </Text>
+                  <Text className="text-gray-500 font-medium">
+                    {user?.primaryEmailAddress?.emailAddress}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
 
           {/* BMI Card */}
           {bmi && !isEditing && (
-            <View className="bg-purple-600 rounded-2xl p-6 mb-6 shadow-lg">
-              <View className="flex-row items-center justify-between">
-                <View>
-                  <Text className="text-white text-sm font-semibold mb-1 opacity-90">
-                    Your BMI
-                  </Text>
-                  <Text className="text-white text-5xl font-bold">{bmi}</Text>
+            <View className="px-6 mb-8">
+              <LinearGradient
+                colors={["#9333ea", "#7928ca"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="rounded-3xl p-6 shadow-xl shadow-purple-300"
+              >
+                <View className="flex-row items-center justify-between">
+                  <View>
+                    <Text className="text-purple-100 text-sm font-semibold mb-1">
+                      Your Body Mass Index
+                    </Text>
+                    <View className="flex-row items-baseline">
+                      <Text className="text-white text-5xl font-bold tracking-tighter">
+                        {bmi}
+                      </Text>
+                      <Text className="text-purple-200 ml-2 font-medium">
+                        BMI
+                      </Text>
+                    </View>
+                    <View className="mt-2 bg-white/20 self-start px-3 py-1 rounded-full backdrop-blur-sm">
+                      <Text className="text-white text-xs font-bold">
+                        {Number(bmi) < 18.5
+                          ? "Underweight"
+                          : Number(bmi) < 25
+                          ? "Healthy Weight"
+                          : Number(bmi) < 30
+                          ? "Overweight"
+                          : "Obese"}
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="bg-white/10 rounded-2xl p-4 backdrop-blur-md">
+                    <Ionicons name="fitness" size={40} color="white" />
+                  </View>
                 </View>
-                <View className="bg-white rounded-full p-4">
-                  <Ionicons name="fitness" size={32} color="#9333ea" />
-                </View>
-              </View>
+              </LinearGradient>
             </View>
           )}
 
 
 
+          
           {/* Personal Information Card */}
-          <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
-            <View className="flex-row items-center mb-5">
-              <View className="bg-purple-100 rounded-full p-2 mr-3">
-                <Ionicons name="person" size={20} color="#9333ea" />
+          <View className="mx-6 bg-white rounded-3xl p-6 mb-6 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-6">
+              <View className="bg-purple-100 rounded-2xl p-3 mr-4">
+                <Ionicons name="person" size={22} color="#9333ea" />
               </View>
               <Text className="text-xl font-bold text-gray-800">
-                Personal Information
+                Personal Details
               </Text>
             </View>
 
@@ -509,10 +564,10 @@ export default function Profile() {
           </View>
 
           {/* Body Measurements Card */}
-          <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
-            <View className="flex-row items-center mb-5">
-              <View className="bg-purple-100 rounded-full p-2 mr-3">
-                <Ionicons name="body" size={20} color="#9333ea" />
+          <View className="mx-6 bg-white rounded-3xl p-6 mb-6 shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-6">
+              <View className="bg-purple-100 rounded-2xl p-3 mr-4">
+                <Ionicons name="body" size={22} color="#9333ea" />
               </View>
               <Text className="text-xl font-bold text-gray-800">
                 Body Measurements
@@ -787,10 +842,10 @@ export default function Profile() {
 
           {/* Action Buttons */}
           {isEditing ? (
-            <View className="flex-row gap-3 mb-4">
+            <View className="mx-6 flex-row gap-3 mb-8">
               <TouchableOpacity
                 onPress={handleCancel}
-                className="flex-1 bg-gray-200 rounded-2xl p-5"
+                className="flex-1 bg-gray-100 rounded-2xl p-4 border border-gray-200"
                 activeOpacity={0.8}
               >
                 <View className="flex-row items-center justify-center">
@@ -802,7 +857,7 @@ export default function Profile() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSaveProfile}
-                className="flex-1 bg-purple-600 rounded-2xl p-5 shadow-lg"
+                className="flex-1 bg-purple-600 rounded-2xl p-4 shadow-lg shadow-purple-200"
                 activeOpacity={0.8}
                 disabled={isSaving}
               >
@@ -812,7 +867,7 @@ export default function Profile() {
                   <View className="flex-row items-center justify-center">
                     <Ionicons name="checkmark" size={20} color="white" />
                     <Text className="text-white font-bold text-lg ml-2">
-                      Save Changes
+                      Save
                     </Text>
                   </View>
                 )}
@@ -821,12 +876,12 @@ export default function Profile() {
           ) : (
             <TouchableOpacity
               onPress={handleSignOut}
-              className="bg-red-600 rounded-2xl p-5 shadow-sm mb-4"
+              className="mx-6 bg-red-50 rounded-2xl p-4 mb-8 border border-red-100"
               activeOpacity={0.8}
             >
               <View className="flex-row items-center justify-center">
-                <Ionicons name="log-out-outline" size={20} color="white" />
-                <Text className="text-white font-bold text-lg ml-2">
+                <Ionicons name="log-out-outline" size={20} color="#dc2626" />
+                <Text className="text-red-600 font-bold text-lg ml-2">
                   Sign Out
                 </Text>
               </View>
