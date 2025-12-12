@@ -134,7 +134,7 @@ export default function ExerciseDetail() {
               
               {/* Target Badge */}
               <View className="flex-row items-center">
-                <View className="bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-1.5 rounded-full">
+                <View className="bg-gradient-to-r from-purple-500 to-violet-500 px-4 py-1.5 rounded-full">
                   <Text className="text-white font-bold text-sm uppercase tracking-wide">
                     {exercise.target}
                   </Text>
@@ -150,8 +150,8 @@ export default function ExerciseDetail() {
             <View className="flex-row bg-gray-50 rounded-2xl p-4 mb-8">
               {/* Equipment */}
               <View className="flex-1 items-center border-r border-gray-200">
-                <View className="w-12 h-12 bg-pink-100 rounded-full items-center justify-center mb-2">
-                  <MaterialCommunityIcons name="dumbbell" size={24} color="#ec4899" />
+                <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mb-2">
+                  <MaterialCommunityIcons name="dumbbell" size={24} color="#9333EA" />
                 </View>
                 <Text className="text-xs text-gray-400 uppercase tracking-wide">Equipment</Text>
                 <Text className="text-sm font-bold text-gray-800 capitalize mt-1">
@@ -186,12 +186,12 @@ export default function ExerciseDetail() {
             {exercise.description && (
               <View className="mb-8">
                 <View className="flex-row items-center mb-4">
-                  <View className="w-10 h-10 bg-indigo-100 rounded-xl items-center justify-center mr-3">
-                    <Ionicons name="information-circle" size={22} color="#6366f1" />
+                  <View className="w-10 h-10 bg-purple-100 rounded-xl items-center justify-center mr-3">
+                    <Ionicons name="information-circle" size={22} color="#9333EA" />
                   </View>
                   <Text className="text-xl font-bold text-gray-900">About</Text>
                 </View>
-                <View className="bg-indigo-50/50 rounded-2xl p-5 border border-indigo-100">
+                <View className="bg-purple-50/50 rounded-2xl p-5 border border-purple-100">
                   <Text className="text-gray-600 leading-7 text-base">
                     {exercise.description}
                   </Text>
@@ -202,16 +202,16 @@ export default function ExerciseDetail() {
             {/* Muscles Worked */}
             <View className="mb-8">
               <View className="flex-row items-center mb-4">
-                <View className="w-10 h-10 bg-pink-100 rounded-xl items-center justify-center mr-3">
-                  <MaterialCommunityIcons name="arm-flex" size={22} color="#ec4899" />
+                <View className="w-10 h-10 bg-purple-100 rounded-xl items-center justify-center mr-3">
+                  <MaterialCommunityIcons name="arm-flex" size={22} color="#9333EA" />
                 </View>
                 <Text className="text-xl font-bold text-gray-900">Muscles Worked</Text>
               </View>
 
               {/* Primary */}
-              <View className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-5 mb-3 border border-pink-100">
-                <Text className="text-xs text-pink-400 uppercase tracking-wider font-bold mb-1">Primary Target</Text>
-                <Text className="text-2xl font-extrabold text-pink-600 capitalize">
+              <View className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-2xl p-5 mb-3 border border-purple-100">
+                <Text className="text-xs text-purple-400 uppercase tracking-wider font-bold mb-1">Primary Target</Text>
+                <Text className="text-2xl font-extrabold text-purple-600 capitalize">
                   {exercise.target}
                 </Text>
               </View>
@@ -312,7 +312,7 @@ export default function ExerciseDetail() {
               : "bg-gradient-to-r from-pink-500 to-rose-500"
           }`}
           style={{
-            backgroundColor: saved ? '#10b981' : saving ? '#9ca3af' : '#ec4899',
+            backgroundColor: saved ? '#10b981' : saving ? '#9ca3af' : '#9333EA',
           }}
         >
           {saving ? (

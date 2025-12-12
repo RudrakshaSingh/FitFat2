@@ -29,8 +29,8 @@ export default function Workout() {
       <View className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mx-6 mb-8">
         <View className="flex-row items-center justify-between mb-6">
           <View className="flex-row items-center">
-            <View className="w-12 h-12 bg-blue-100 rounded-full items-center justify-center mr-3">
-              <Ionicons name="fitness" size={24} color="#3B82F6" />
+            <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mr-3">
+              <Ionicons name="fitness" size={24} color="#9333EA" />
             </View>
 
             <View>
@@ -48,7 +48,7 @@ export default function Workout() {
         {/* Start Button */}
         <TouchableOpacity
           onPress={startWorkout}
-          className="bg-blue-600 rounded-2xl py-4 items-center"
+          className="bg-purple-600 rounded-2xl py-4 items-center"
           activeOpacity={0.8}
         >
           <View className="flex-row items-center">

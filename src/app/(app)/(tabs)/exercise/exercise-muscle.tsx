@@ -110,7 +110,7 @@ export default function ExerciseMuscle() {
           <Text className="text-lg font-bold text-gray-900 capitalize leading-6">
             {item.name.replace(/-/g, " ")}
           </Text>
-          <Text className="text-sm text-pink-600 font-semibold mt-1 capitalize">
+          <Text className="text-sm text-purple-600 font-semibold mt-1 capitalize">
             {item.target}
           </Text>
           <Text className="text-xs text-gray-500 mt-1 capitalize">
@@ -127,7 +127,7 @@ export default function ExerciseMuscle() {
       edges={["left", "right", "bottom"]}
     >
       {/* Hero Header*/}
-      <View className="w-full h-72 bg-gradient-to-br from-pink-600 via-pink-700 to-rose-700 justify-end">
+      <View className="w-full h-72 bg-gradient-to-br from-purple-600 via-purple-700 to-violet-700 justify-end">
         {/* Back Button */}
         <View className="absolute top-12 left-6 z-10">
           <TouchableOpacity
@@ -158,7 +158,7 @@ export default function ExerciseMuscle() {
       <View className="px-6 pt-6 pb-3 bg-gray-50 rounded-t-3xl -mt-6">
         <View className="flex-row items-center gap-3">
           <View className="flex-1 flex-row items-center bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-200">
-            <Ionicons name="search" size20 color="#ec4899" />
+            <Ionicons name="search" size20 color="#9333EA" />
             <TextInput
               placeholder="Search exercises..."
               value={searchQuery}
@@ -175,7 +175,7 @@ export default function ExerciseMuscle() {
 
           <TouchableOpacity
             onPress={() => setShowFilters(!showFilters)}
-            className="h-12 w-12 bg-pink-600 rounded-2xl items-center justify-center shadow-lg"
+            className="h-12 w-12 bg-purple-600 rounded-2xl items-center justify-center shadow-lg"
           >
             <Ionicons
               name={showFilters ? "close" : "options-outline"}
@@ -189,7 +189,7 @@ export default function ExerciseMuscle() {
         {showFilters && bodyPartsList.length > 0 && (
           <View className="mt-5 pb-6">
             <Text className="text-sm font-bold text-gray-800 mb-3 flex-row items-center">
-              <Ionicons name="body" size={18} color="#6366f1" />
+              <Ionicons name="body" size={18} color="#9333EA" />
               <Text className="ml-2">Body Part</Text>
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -204,7 +204,7 @@ export default function ExerciseMuscle() {
                     }
                     className={`px-5 py-2.5 rounded-full border-2 ${
                       selectedBodyPart === part
-                        ? "bg-indigo-600 border-indigo-600"
+                        ? "bg-purple-600 border-purple-600"
                         : "bg-white border-gray-300"
                     }`}
                   >
@@ -230,7 +230,7 @@ export default function ExerciseMuscle() {
                 }}
                 className="mt-4"
               >
-                <Text className="text-pink-600 font-bold text-center">
+                <Text className="text-purple-600 font-bold text-center">
                   Clear Filters
                 </Text>
               </TouchableOpacity>
@@ -243,7 +243,7 @@ export default function ExerciseMuscle() {
       <View className="flex-1 bg-gray-50 px-6 pb-6">
         {loading || refreshing ? (
           <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#ec4899" />
+            <ActivityIndicator size="large" color="#9333EA" />
             <Text className="text-gray-600 mt-4 text-lg">
               Loading {muscle} exercises...
             </Text>
@@ -269,8 +269,8 @@ export default function ExerciseMuscle() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={() => fetchExercises(true)}
-                colors={["#ec4899"]}
-                tintColor="#ec4899"
+                colors={["#9333EA"]}
+                tintColor="#9333EA"
               />
             }
           />

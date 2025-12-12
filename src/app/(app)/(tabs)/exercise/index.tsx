@@ -199,7 +199,7 @@ export default function Exercise() {
 
   const SectionHeader = ({ title, icon }: { title: string; icon: string }) => (
     <View className="flex-row items-center mb-4">
-      <View className="w-1 h-8 bg-pink-500 rounded-full mr-3" />
+      <View className="w-1 h-8 bg-purple-600 rounded-full mr-3" />
       <Text className="text-2xl font-bold text-gray-900 flex-1">{title}</Text>
     </View>
   );
@@ -208,10 +208,10 @@ export default function Exercise() {
     <TouchableOpacity
       key={name}
       onPress={onPress}
-      className="mr-2 mb-2 bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2.5 rounded-full border border-indigo-100"
+      className="mr-2 mb-2 bg-purple-50 px-4 py-2.5 rounded-full border border-purple-100"
       activeOpacity={0.7}
     >
-      <Text className="text-indigo-700 font-semibold capitalize text-sm">{name}</Text>
+      <Text className="text-purple-700 font-semibold capitalize text-sm">{name}</Text>
     </TouchableOpacity>
   );
 
@@ -219,10 +219,10 @@ export default function Exercise() {
     <TouchableOpacity
       key={name}
       onPress={onPress}
-      className="mr-2 mb-2 bg-gradient-to-r from-pink-50 to-rose-50 px-4 py-2.5 rounded-full border border-pink-100"
+      className="mr-2 mb-2 bg-purple-50 px-4 py-2.5 rounded-full border border-purple-100"
       activeOpacity={0.7}
     >
-      <Text className="text-pink-700 font-semibold capitalize text-sm">{name}</Text>
+      <Text className="text-purple-600 font-semibold capitalize text-sm">{name}</Text>
     </TouchableOpacity>
   );
 
@@ -238,8 +238,8 @@ export default function Exercise() {
               await fetchFilters();
               setRefreshing(false);
             }}
-            colors={["#ec4899"]}
-            tintColor="#ec4899"
+            colors={["#9333EA"]}
+            tintColor="#9333EA"
           />
         }
       >
@@ -253,7 +253,7 @@ export default function Exercise() {
               </Text>
             </View>
             <View className="w-12 h-12 bg,100 rounded-full items-center justify-center">
-              <Ionicons name="fitness" size={28} color="#ec4899" />
+              <Ionicons name="fitness" size={28} color="#9333EA" />
             </View>
           </View>
         </View>

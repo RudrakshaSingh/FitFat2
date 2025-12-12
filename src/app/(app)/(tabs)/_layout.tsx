@@ -8,7 +8,12 @@ function Layout() {
       screenOptions={{
         tabBarStyle: {
           height: 56,
+          backgroundColor: "#FFFFFF",
+          borderTopColor: "#E5E7EB",
+          borderTopWidth: 1,
         },
+        tabBarActiveTintColor: "#9333EA",
+        tabBarInactiveTintColor: "#9CA3AF",
       }}
     >
       <Tabs.Screen

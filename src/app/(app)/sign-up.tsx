@@ -166,7 +166,7 @@ export default function SignUpScreen() {
                 disabled={isLoading}
                 activeOpacity={0.8}
                 className={`rounded-xl py-4 shadow-sm mb-4 ${
-                  isLoading ? "bg-gray-400" : "bg-green-600"
+                  isLoading ? "bg-gray-400" : "bg-purple-600"
                 }`}
               >
                 <View className="flex-row items-center justify-center">
@@ -190,7 +190,7 @@ export default function SignUpScreen() {
               <TouchableOpacity className="py-2">
                 <Text className="text-center text-gray-400 font-medium">
                   Didn't receive a code?{" "}
-                  <Text className="text-blue-600 text-center font-medium">
+                  <Text className="text-purple-600 text-center font-medium">
                     Resend Code
                   </Text>
                 </Text>
@@ -309,7 +309,7 @@ export default function SignUpScreen() {
               disabled={isLoading}
               activeOpacity={0.8}
               className={`rounded-xl py-4 shadow-sm mb-4 ${
-                isLoading ? "bg-gray-400" : "bg-blue-600"
+                isLoading ? "bg-gray-400" : "bg-purple-600"
               }`}
             >
               <View className="flex-row items-center justify-center">
@@ -335,7 +335,7 @@ export default function SignUpScreen() {
           <View className="flex-row justify-center items-center mb-6">
             <Text className="text-gray-600">Already have an account? </Text>
             <Link href="/sign-in">
-              <Text className="text-blue-600 font-semibold">Sign In</Text>
+              <Text className="text-purple-600 font-semibold">Sign In</Text>
             </Link>
           </View>
         </View>

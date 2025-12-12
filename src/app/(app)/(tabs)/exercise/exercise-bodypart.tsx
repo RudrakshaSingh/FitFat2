@@ -138,7 +138,7 @@ export default function ExcerciseBodypart() {
           <Text className="text-lg font-bold text-gray-900 capitalize leading-6">
             {item.name.replace(/-/g, " ")}
           </Text>
-          <Text className="text-sm text-pink-600 font-semibold mt-1 capitalize">
+          <Text className="text-sm text-purple-600 font-semibold mt-1 capitalize">
             {item.target}
           </Text>
           <Text className="text-xs text-gray-500 mt-1 capitalize">
@@ -180,7 +180,7 @@ export default function ExcerciseBodypart() {
       <View className="px-6 pt-6 pb-3 bg-gray-50 rounded-t-3xl -mt-6">
         <View className="flex-row items-center gap-3">
           <View className="flex-1 flex-row items-center bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-200">
-            <Ionicons name="search" size={20} color="#ec4899" />
+            <Ionicons name="search" size={20} color="#9333EA" />
             <TextInput
               placeholder="Search exercises..."
               value={searchQuery}
@@ -197,7 +197,7 @@ export default function ExcerciseBodypart() {
 
           <TouchableOpacity
             onPress={() => setShowFilters(!showFilters)}
-            className="h-12 w-12 bg-pink-600 rounded-2xl items-center justify-center shadow-lg"
+            className="h-12 w-12 bg-purple-600 rounded-2xl items-center justify-center shadow-lg"
           >
             <Ionicons
               name={showFilters ? "close" : "options-outline"}
@@ -223,7 +223,7 @@ export default function ExcerciseBodypart() {
                         onPress={() => toggleFilter("equipment", eq)}
                         className={`mr-3 px-5 py-2.5 rounded-full border-2 ${
                           selectedEquipment === eq
-                            ? "bg-pink-600 border-pink-600"
+                            ? "bg-purple-600 border-purple-600"
                             : "bg-white border-gray-300"
                         }`}
                       >
@@ -284,7 +284,7 @@ export default function ExcerciseBodypart() {
                 }}
                 className="mt-5"
               >
-                <Text className="text-pink-600 font-semibold text-center text-base">
+                <Text className="text-purple-600 font-semibold text-center text-base">
                   Clear All Filters
                 </Text>
               </TouchableOpacity>
@@ -297,7 +297,7 @@ export default function ExcerciseBodypart() {
       <View className="flex-1 bg-gray-50 px-6 pb-6">
         {loading || refreshing ? (
           <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#ec4899" />
+            <ActivityIndicator size="large" color="#9333EA" />
             <Text className="text-gray-600 mt-4 text-lg">
               Loading exercises...
             </Text>
@@ -320,8 +320,8 @@ export default function ExcerciseBodypart() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={() => fetchAllExercises(true)}
-                colors={["#ec4899"]}
-                tintColor="#ec4899"
+                colors={["#9333EA"]}
+                tintColor="#9333EA"
               />
             }
           />

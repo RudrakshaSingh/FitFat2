@@ -323,7 +323,7 @@ export default function ActiveWorkout() {
               <TouchableOpacity
                 onPress={() => setWeightUnit("lbs")}
                 className={`px-3 py-1 rounded ${
-                  weightUnit === "lbs" ? "bg-blue-600" : ""
+                  weightUnit === "lbs" ? "bg-purple-600" : ""
                 }`}
               >
                 <Text
@@ -339,7 +339,7 @@ export default function ActiveWorkout() {
               <TouchableOpacity
                 onPress={() => setWeightUnit("kg")}
                 className={`px-3 py-1 rounded ${
-                  weightUnit === "kg" ? "bg-blue-600" : ""
+                  weightUnit === "kg" ? "bg-purple-600" : ""
                 }`}
               >
                 <Text
@@ -409,7 +409,7 @@ export default function ActiveWorkout() {
                     params: { id: exercise.sanityId },
                   })
                 }
-                className="bg-blue-50 rounded-2xl p-4 mb-3"
+                className="bg-purple-50 rounded-2xl p-4 mb-3"
               >
                 <View className="flex-row items-center justify-between">
                   {/* Left Section */}
@@ -539,17 +539,17 @@ export default function ActiveWorkout() {
                 {/* Add New Set Button */}
                 <TouchableOpacity
                   onPress={() => addNewSet(exercise.id)}
-                  className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg py-3 items-center mt-2"
+                  className="bg-purple-50 border-2 border-dashed border-purple-300 rounded-lg py-3 items-center mt-2"
                   activeOpacity={0.8}
                 >
                   <View className="flex-row items-center">
                     <Ionicons
                       name="add"
                       size={16}
-                      color="#3B82F6"
+                      color="#9333EA"
                       style={{ marginRight: 6 }}
                     />
-                    <Text className="text-blue-600 font-medium">Add Set</Text>
+                    <Text className="text-purple-600 font-medium">Add Set</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -558,7 +558,7 @@ export default function ActiveWorkout() {
           {/* Add Exercise Button */}
           <TouchableOpacity
             onPress={addExercise}
-            className="bg-blue-600 rounded-2xl py-4 items-center mb-8"
+            className="bg-purple-600 rounded-2xl py-4 items-center mb-8"
             activeOpacity={0.8}
           >
             <View className="flex-row items-center">

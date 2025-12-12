@@ -172,7 +172,7 @@ export default function WorkoutRecord() {
       <SafeAreaView className="flex-1 bg-gray-50">
         <View className="flex-1 items-center justify-center">
           <Text className="text-gray-600 mt-4">Loading workout...</Text>
-          <ActivityIndicator size="large" color="#3882F6" />
+          <ActivityIndicator size="large" color="#9333EA" />
         </View>
       </SafeAreaView>
     );
@@ -194,7 +194,7 @@ export default function WorkoutRecord() {
 
           <TouchableOpacity
             onPress={() => router.back()}
-            className="bg-blue-600 px-6 py-3 rounded-lg mt-6"
+            className="bg-purple-600 px-6 py-3 rounded-lg mt-6"
           >
             <Text className="text-white font-medium">Go Back</Text>
           </TouchableOpacity>
@@ -291,8 +291,8 @@ export default function WorkoutRecord() {
                   </Text>
                 </View>
 
-                <View className="bg-blue-100 rounded-full w-10 h-10 items-center justify-center">
-                  <Text className="text-blue-600 font-bold text-lg">
+                <View className="bg-purple-100 rounded-full w-10 h-10 items-center justify-center">
+                  <Text className="text-purple-600 font-bold text-lg">
                     {index + 1}
                   </Text>
                 </View>

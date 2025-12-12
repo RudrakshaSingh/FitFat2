@@ -51,7 +51,7 @@ export default function Page() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <KeyboardAwareScrollView
         className="flex-1 px-6"
         contentContainerStyle={{
@@ -153,7 +153,7 @@ export default function Page() {
             disabled={isLoading}
             activeOpacity={0.8}
             className={`rounded-xl py-4 shadow-sm mb-4 ${
-              isLoading ? "bg-gray-400" : "bg-blue-600"
+              isLoading ? "bg-gray-400" : "bg-purple-600"
             }`}
           >
             <View className="flex-row items-center justify-center">
@@ -183,7 +183,7 @@ export default function Page() {
           <View className="flex-row justify-center items-center mt-6">
             <Text className="text-gray-600">New to FitFat? </Text>
             <Link href="/sign-up">
-              <Text className="text-blue-600 font-semibold">Sign Up</Text>
+              <Text className="text-purple-600 font-semibold">Sign Up</Text>
             </Link>
           </View>
         </View>

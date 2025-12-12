@@ -132,7 +132,7 @@ export default function HistoryPage() {
         </View>
 
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color="#9333EA" />
           <Text className="text-gray-600 mt-4">Loading your workouts...</Text>
         </View>
       </SafeAreaView>
@@ -203,11 +203,11 @@ export default function HistoryPage() {
                     </View>
                   </View>
 
-                  <View className="bg-blue-100 rounded-full w-12 h-12 items-center justify-center">
+                  <View className="bg-purple-100 rounded-full w-12 h-12 items-center justify-center">
                     <Ionicons
                       name="fitness-outline"
                       size={24}
-                      color="#3B82F6"
+                      color="#9333EA"
                     />
                   </View>
                 </View>
@@ -242,9 +242,9 @@ export default function HistoryPage() {
                         .map((name, index) => (
                           <View
                             key={index}
-                            className="bg-blue-50 rounded-lg px-3 py-1 mr-2 mb-2"
+                            className="bg-purple-50 rounded-lg px-3 py-1 mr-2 mb-2"
                           >
-                            <Text className="text-blue-700 text-sm font-medium">
+                            <Text className="text-purple-700 text-sm font-medium">
                               {name}
                             </Text>
                           </View>
