@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "@clerk/clerk-expo";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import exercise from "sanity/schemaTypes/exercise";
 
@@ -48,6 +49,18 @@ export default function WorkoutRecord() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
+  const { user } = useUser();
+
+  // Get user's preferred weight unit from Clerk metadata
+  const userWeightUnit = (user?.unsafeMetadata?.weightUnit as "kg" | "lbs") || "kg";
+
+  // Convert weight to user's preferred unit
+  const convertWeight = (weight: number, fromUnit: string): number => {
+    if (fromUnit === userWeightUnit) return weight;
+    if (fromUnit === "kg" && userWeightUnit === "lbs") return weight * 2.20462;
+    if (fromUnit === "lbs" && userWeightUnit === "kg") return weight / 2.20462;
+    return weight;
+  };
 
   const [workout, setWorkout] = useState<GetWorkoutsQueryResult[number] | null>(
     null
@@ -109,17 +122,16 @@ export default function WorkoutRecord() {
 
   const getTotalVolume = () => {
     let totalVolume = 0;
-    let unit = "kg";
 
     workout?.exercises?.forEach((exercise) => {
       exercise.sets?.forEach((set) => {
         if (set.weight && set.reps) {
-          totalVolume += set.weight * set.reps;
-          unit = set.weightUnit || "kg";
+          const convertedWeight = convertWeight(set.weight, set.weightUnit || "kg");
+          totalVolume += convertedWeight * set.reps;
         }
       });
     });
-    return { volume: totalVolume, unit: unit };
+    return { volume: totalVolume, unit: userWeightUnit };
   };
 
   const handleDeleteWorkout = () => {
@@ -331,7 +343,7 @@ export default function WorkoutRecord() {
                           color="#687280"
                         />
                         <Text className="text-gray-700 ml-2 font-medium">
-                          {set.weight} {set.weightUnit || "kg"}
+                          {convertWeight(set.weight, set.weightUnit || "kg").toFixed(1)} {userWeightUnit}
                         </Text>
                       </View>
                     )}
@@ -350,10 +362,11 @@ export default function WorkoutRecord() {
                     <Text className="text-sm font-medium text-gray-900">
                       {exerciseData.sets
                         .reduce((total, set) => {
-                          return total + (set.weight || 0) * (set.reps || 0);
+                          const convertedWeight = convertWeight(set.weight || 0, set.weightUnit || "kg");
+                          return total + convertedWeight * (set.reps || 0);
                         }, 0)
-                        .toLocaleString()}{" "}
-                      {exerciseData.sets[0]?.weightUnit || "kg"}
+                        .toFixed(1)}{" "}
+                      {userWeightUnit}
                     </Text>
                   </View>
                 </View>

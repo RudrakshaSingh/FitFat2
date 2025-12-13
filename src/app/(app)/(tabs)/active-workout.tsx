@@ -35,9 +35,10 @@ export default function ActiveWorkout() {
     workoutExercises,
     setWorkoutExercises,
     resetWorkout,
-    weightUnit,
-    setWeightUnit,
   } = useWorkoutStore();
+
+  // Get weight unit from user's Clerk metadata (default to kg)
+  const userWeightUnit = (user?.unsafeMetadata?.weightUnit as "kg" | "lbs") || "kg";
 
   const router = useRouter();
 
@@ -123,7 +124,49 @@ export default function ActiveWorkout() {
     );
   };
   const saveWorkout = () => {
-    // are you sure you want to complete the workout?
+    // Validate workout before completing
+    if (workoutExercises.length === 0) {
+      Alert.alert("No Exercises", "Please add at least one exercise to your workout.");
+      return;
+    }
+
+    // Check for exercises with no sets
+    const exercisesWithNoSets = workoutExercises.filter(ex => ex.sets.length === 0);
+    if (exercisesWithNoSets.length > 0) {
+      Alert.alert(
+        "Missing Sets",
+        `Please add at least one set to: ${exercisesWithNoSets.map(ex => ex.name).join(", ")}`
+      );
+      return;
+    }
+
+    // Helper to validate numbers strictly (no commas, special chars)
+    const isValidInteger = (value: string) => /^\d+$/.test(value.trim());
+    const isValidNumber = (value: string) => /^\d+(\.\d+)?$/.test(value.trim());
+
+    // Check for incomplete sets
+    const incompleteSets: string[] = [];
+    workoutExercises.forEach((exercise) => {
+      exercise.sets.forEach((set, index) => {
+        if (!set.isCompleted) {
+          incompleteSets.push(`${exercise.name} - Set ${index + 1} (not marked complete)`);
+        } else if (!set.reps || !isValidInteger(set.reps) || parseInt(set.reps, 10) <= 0) {
+          incompleteSets.push(`${exercise.name} - Set ${index + 1} (invalid reps - use whole numbers only)`);
+        } else if (!set.weight || !isValidNumber(set.weight) || parseFloat(set.weight) <= 0) {
+          incompleteSets.push(`${exercise.name} - Set ${index + 1} (invalid weight - use numbers only)`);
+        }
+      });
+    });
+
+    if (incompleteSets.length > 0) {
+      Alert.alert(
+        "Incomplete Sets",
+        `Please complete the following:\n\n${incompleteSets.slice(0, 5).join("\n")}${incompleteSets.length > 5 ? `\n...and ${incompleteSets.length - 5} more` : ""}`
+      );
+      return;
+    }
+
+    // All valid - confirm completion
     Alert.alert(
       "Complete Workout",
       "Are you sure you want to complete the workout?",
@@ -245,7 +288,7 @@ export default function ActiveWorkout() {
       id: Math.random().toString(),
       reps: "",
       weight: "",
-      weightUnit: weightUnit,
+      weightUnit: userWeightUnit,
       isCompleted: false,
     };
 
@@ -317,39 +360,11 @@ export default function ActiveWorkout() {
 
           {/* Right Section */}
           <View className="flex-row items-center gap-2">
-            {/* Weight Unit Toggle */}
-            <View className="flex-row bg-gray-700 rounded-lg p-1">
-              {/* LBS Button */}
-              <TouchableOpacity
-                onPress={() => setWeightUnit("lbs")}
-                className={`px-3 py-1 rounded ${
-                  weightUnit === "lbs" ? "bg-purple-600" : ""
-                }`}
-              >
-                <Text
-                  className={`text-sm font-medium ${
-                    weightUnit === "lbs" ? "text-white" : "text-gray-300"
-                  }`}
-                >
-                  lbs
-                </Text>
-              </TouchableOpacity>
-
-              {/* KG Button */}
-              <TouchableOpacity
-                onPress={() => setWeightUnit("kg")}
-                className={`px-3 py-1 rounded ${
-                  weightUnit === "kg" ? "bg-purple-600" : ""
-                }`}
-              >
-                <Text
-                  className={`text-sm font-medium ${
-                    weightUnit === "kg" ? "text-white" : "text-gray-300"
-                  }`}
-                >
-                  kg
-                </Text>
-              </TouchableOpacity>
+            {/* Weight Unit Badge (from user profile) */}
+            <View className="bg-purple-600 px-3 py-1.5 rounded-lg">
+              <Text className="text-sm font-medium text-white uppercase">
+                {userWeightUnit}
+              </Text>
             </View>
 
             <TouchableOpacity
@@ -486,7 +501,7 @@ export default function ActiveWorkout() {
                         {/* Weight Input */}
                         <View className="flex-1 mx-2">
                           <Text className="text-xs text-gray-500 mb-1">
-                            Weight ({weightUnit})
+                            Weight ({userWeightUnit})
                           </Text>
 
                           <TextInput
@@ -577,22 +592,8 @@ export default function ActiveWorkout() {
           {/* Complete Workout Button */}
           <TouchableOpacity
             onPress={saveWorkout}
-            disabled={
-              isSaving ||
-              workoutExercises.length === 0 ||
-              workoutExercises.some((exercise) =>
-                exercise.sets.some((set) => !set.isCompleted)
-              )
-            }
-            className={`rounded-2xl py-4 items-center mb-8 ${
-              isSaving ||
-              workoutExercises.length === 0 ||
-              workoutExercises.some((exercise) =>
-                exercise.sets.some((set) => !set.isCompleted)
-              )
-                ? "bg-gray-400"
-                : "bg-green-600 active:bg-green-700"
-            }`}
+            disabled={isSaving}
+            className={`rounded-2xl py-4 items-center mb-8 ${isSaving ? "bg-gray-400" : "bg-green-600 active:bg-green-700"}`}
           >
             {isSaving ? (
               <View className="flex-row items-center">

@@ -15,6 +15,7 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import * as ImagePicker from "expo-image-picker";
 
 const MAX_WEIGHT_KG = 200;
 const MAX_WEIGHT_LBS = 440.9; // 200 kg in lbs
@@ -40,6 +41,7 @@ export default function Profile() {
   const [heightUnit, setHeightUnit] = useState<"cm" | "ft">("cm");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     if (user?.unsafeMetadata) {
@@ -285,6 +287,47 @@ export default function Profile() {
     );
   };
 
+  const pickProfileImage = async () => {
+    if (isUploadingImage) return;
+
+    // Request permission
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "Please allow access to your photo library to update your profile picture."
+      );
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets[0].base64) {
+        setIsUploadingImage(true);
+        
+        // Get the mime type from the uri
+        const uri = result.assets[0].uri;
+        const mimeType = uri.endsWith(".png") ? "image/png" : "image/jpeg";
+        const base64Image = `data:${mimeType};base64,${result.assets[0].base64}`;
+
+        await user?.setProfileImage({ file: base64Image });
+        Alert.alert("Success", "Profile picture updated!");
+      }
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+      Alert.alert("Error", "Failed to update profile picture. Please try again.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const calculateBMI = () => {
     const weight = Number(weightKg);
     const height = Number(heightCm) / 100; // convert to meters
@@ -323,18 +366,36 @@ export default function Profile() {
             </View>
 
             <View className="items-center">
-              <View className="shadow-lg shadow-purple-200">
-                <View className="p-1 bg-white rounded-full">
-                  <Image
-                    source={{
-                      uri: user?.imageUrl || "https://bg.adhoc.team/avatars/default.png",
-                    }}
-                    className="w-28 h-28 rounded-full"
-                  />
+              <TouchableOpacity
+                onPress={isEditing ? pickProfileImage : undefined}
+                activeOpacity={isEditing ? 0.8 : 1}
+                disabled={isUploadingImage}
+              >
+                <View className="shadow-lg shadow-purple-200">
+                  <View className="p-1 bg-white rounded-full">
+                    <Image
+                      source={{
+                        uri: user?.imageUrl || "https://bg.adhoc.team/avatars/default.png",
+                      }}
+                      className="w-28 h-28 rounded-full"
+                    />
+                    {/* Upload overlay when editing */}
+                    {isEditing && (
+                      <View className="absolute inset-0 bg-black/40 rounded-full items-center justify-center">
+                        {isUploadingImage ? (
+                          <ActivityIndicator color="white" size="small" />
+                        ) : (
+                          <Ionicons name="camera" size={28} color="white" />
+                        )}
+                      </View>
+                    )}
+                  </View>
+                  {/* Status Badge */}
+                  {!isEditing && (
+                    <View className="absolute bottom-1 right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-white" />
+                  )}
                 </View>
-                {/* Status Badge */}
-                <View className="absolute bottom-1 right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-white" />
-              </View>
+              </TouchableOpacity>
 
               {!isEditing && (
                 <View className="mt-4 items-center">
