@@ -51,9 +51,18 @@ export default function GoogleSignIn() {
   const onPress = useCallback(async () => {
     try {
       setIsLoading(true);
+      
+      // Use explicit redirect URL with the app scheme
+      const redirectUrl = AuthSession.makeRedirectUri({
+        scheme: "acme",
+        path: "oauth-callback",
+      });
+      
+      console.log("Redirect URL:", redirectUrl);
+      
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: "oauth_google",
-        redirectUrl: AuthSession.makeRedirectUri(),
+        redirectUrl,
       });
 
       if (createdSessionId) {
@@ -62,12 +71,16 @@ export default function GoogleSignIn() {
 
         // Then navigate using the same method as email sign-in
         router.replace("/");
+      } else {
+        // No session created - user may have cancelled
+        console.log("No session created");
       }
     } catch (err) {
-      console.error(JSON.stringify(err, null, 2));
+      console.error("OAuth Error:", JSON.stringify(err, null, 2));
+    } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, [router, startSSOFlow]);
 
   return (
     <TouchableOpacity

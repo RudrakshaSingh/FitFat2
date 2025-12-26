@@ -42,3 +42,6 @@ app-example
 .env.development
 .env.testing
 .env.production
+
+# EAS config with secrets
+eas.json

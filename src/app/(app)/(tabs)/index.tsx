@@ -1,15 +1,26 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Text, View, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useStepStore } from "../../../../store/step-store";
 
 export default function Page() {
   const { user } = useUser();
   const router = useRouter();
   const userName = user?.unsafeMetadata?.name as string | undefined;
   const displayName = userName || user?.firstName || "Friend";
+
+  const { currentSteps, dailyGoal, checkAndResetForNewDay } = useStepStore();
+
+  // Check for new day on mount
+  useEffect(() => {
+    checkAndResetForNewDay();
+  }, []);
+
+  const progress = Math.min(currentSteps / dailyGoal, 1);
+  const progressPercent = Math.round(progress * 100);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -23,6 +34,44 @@ export default function Page() {
             {displayName}
           </Text>
         </View>
+
+        {/* Step Counter Card */}
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/(tabs)/steps")}
+          className="bg-white rounded-2xl p-5 shadow-sm border border-purple-100 mb-6"
+          activeOpacity={0.8}
+        >
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center flex-1">
+              <View className="bg-purple-100 p-3 rounded-xl mr-4">
+                <Ionicons name="footsteps" size={24} color="#9333ea" />
+              </View>
+              <View>
+                <Text className="text-2xl font-bold text-gray-800">
+                  {currentSteps.toLocaleString()}
+                </Text>
+                <Text className="text-gray-500 text-sm">
+                  of {dailyGoal.toLocaleString()} steps
+                </Text>
+              </View>
+            </View>
+            <View className="items-end">
+              <View className="bg-purple-100 px-3 py-1 rounded-full mb-1">
+                <Text className="text-purple-700 font-bold text-sm">
+                  {progressPercent}%
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            </View>
+          </View>
+          {/* Progress Bar */}
+          <View className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <View
+              className="h-full bg-purple-500 rounded-full"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </View>
+        </TouchableOpacity>
 
         {/* User Library Card */}
         <TouchableOpacity
@@ -73,3 +122,4 @@ export default function Page() {
     </SafeAreaView>
   );
 }
+

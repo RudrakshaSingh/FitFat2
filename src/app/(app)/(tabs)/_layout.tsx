@@ -1,6 +1,7 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { Tabs } from "expo-router";
 import Entypo from "@expo/vector-icons/Entypo";
+import { Ionicons } from "@expo/vector-icons";
 
 function Layout() {
   return (
@@ -23,6 +24,16 @@ function Layout() {
           title: "Home",
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="home" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="steps"
+        options={{
+          title: "Steps",
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="footsteps" color={color} size={size} />
           ),
         }}
       />
