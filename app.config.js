@@ -15,21 +15,44 @@ export default {
       output: "server",
     },
     android: {
-      permissions: ["android.permission.ACTIVITY_RECOGNITION"],
+      permissions: [
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+      ],
       package: "com.rudrakshasingh.FitFat2",
       adaptiveIcon: {
         foregroundImage: "./assets/app.png",
         backgroundColor: "#ffffff",
       },
     },
+    ios: {
+      infoPlist: {
+        UIBackgroundModes: ["fetch", "processing"],
+      },
+    },
     plugins: [
       "expo-router",
       "expo-web-browser",
+      "expo-secure-store",
       [
         "expo-sensors",
         {
           motionPermission:
             "Allow $(PRODUCT_NAME) to access your device motion for step counting.",
+        },
+      ],
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/app.png",
+          color: "#9333ea",
+        },
+      ],
+      [
+        "expo-background-fetch",
+        {
+          startOnBoot: true,
         },
       ],
     ],

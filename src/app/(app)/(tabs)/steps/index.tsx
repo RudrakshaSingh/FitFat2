@@ -14,15 +14,24 @@ import { Pedometer } from "expo-sensors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useStepStore } from "../../../../../store/step-store";
 import Svg, { Circle } from "react-native-svg";
+import {
+  startStepTracking,
+  stopStepTracking,
+  updateTrackingNotification,
+  setupAppStateHandler,
+  cleanupAppStateHandler,
+} from "../../../../services/step-tracking-service";
 
 export default function StepsScreen() {
   const {
     currentSteps,
     dailyGoal,
+    isTracking,
     setCurrentSteps,
     addSteps,
     setDailyGoal,
     checkAndResetForNewDay,
+    toggleTracking,
   } = useStepStore();
 
   const [isPedometerAvailable, setIsPedometerAvailable] = useState<
@@ -30,20 +39,24 @@ export default function StepsScreen() {
   >("checking");
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [goalInput, setGoalInput] = useState(dailyGoal.toString());
-  
+
   // Track the baseline step count when subscription starts
   const baselineStepsRef = React.useRef<number | null>(null);
+  const subscriptionRef = React.useRef<{ remove: () => void } | null>(null);
 
   // Check for new day on mount
   useEffect(() => {
     checkAndResetForNewDay();
+    setupAppStateHandler();
+
+    return () => {
+      cleanupAppStateHandler();
+    };
   }, []);
 
-  // Subscribe to pedometer updates
+  // Check pedometer availability on mount
   useEffect(() => {
-    let subscription: { remove: () => void } | null = null;
-
-    const subscribe = async () => {
+    const checkAvailability = async () => {
       try {
         const perm = await Pedometer.requestPermissionsAsync();
         if (!perm.granted) {
@@ -55,67 +68,99 @@ export default function StepsScreen() {
         const isAvailable = await Pedometer.isAvailableAsync();
         console.log("Pedometer available:", isAvailable);
         setIsPedometerAvailable(isAvailable ? "available" : "unavailable");
+      } catch (err) {
+        console.error("Error checking pedometer:", err);
+        setIsPedometerAvailable("unavailable");
+      }
+    };
 
-        if (isAvailable) {
-          // Try to get today's step count (works on iOS, not on Android)
-          if (Platform.OS === "ios") {
-            const end = new Date();
-            const start = new Date();
-            start.setHours(0, 0, 0, 0);
+    checkAvailability();
+  }, []);
 
-            try {
-              const pastStepCount = await Pedometer.getStepCountAsync(start, end);
-              if (pastStepCount) {
-                console.log("iOS past steps:", pastStepCount.steps);
-                setCurrentSteps(pastStepCount.steps);
-              }
-            } catch (error) {
-              console.log("Error getting past step count:", error);
+  // Subscribe/unsubscribe to pedometer based on isTracking state
+  useEffect(() => {
+    if (!isTracking) {
+      // Clean up subscription if tracking is stopped
+      if (subscriptionRef.current) {
+        subscriptionRef.current.remove();
+        subscriptionRef.current = null;
+      }
+      baselineStepsRef.current = null;
+      return;
+    }
+
+    const subscribe = async () => {
+      if (isPedometerAvailable !== "available") return;
+
+      try {
+        // Try to get today's step count (works on iOS)
+        if (Platform.OS === "ios") {
+          const end = new Date();
+          const start = new Date();
+          start.setHours(0, 0, 0, 0);
+
+          try {
+            const pastStepCount = await Pedometer.getStepCountAsync(start, end);
+            if (pastStepCount) {
+              console.log("iOS past steps:", pastStepCount.steps);
+              setCurrentSteps(pastStepCount.steps);
             }
+          } catch (error) {
+            console.log("Error getting past step count:", error);
+          }
+        }
+
+        // Subscribe to real-time updates
+        console.log("Subscribing to step count...");
+        subscriptionRef.current = Pedometer.watchStepCount((result) => {
+          console.log("Step update received:", result.steps);
+
+          // First update - set baseline
+          if (baselineStepsRef.current === null) {
+            baselineStepsRef.current = result.steps;
+            console.log("Baseline set to:", result.steps);
+            return;
           }
 
-          // Subscribe to real-time updates
-          console.log("Subscribing to step count...");
-          subscription = Pedometer.watchStepCount((result) => {
-            console.log("Step update received:", result.steps);
-            
-            // First update - set baseline
-            if (baselineStepsRef.current === null) {
-              baselineStepsRef.current = result.steps;
-              console.log("Baseline set to:", result.steps);
-              return;
-            }
-            
-            // Calculate new steps since baseline
-            const newSteps = result.steps - baselineStepsRef.current;
-            if (newSteps > 0) {
-              console.log("Adding steps:", newSteps);
-              // Update baseline and add the difference
-              baselineStepsRef.current = result.steps;
-              addSteps(newSteps);
-            }
-          });
-        }
+          // Calculate new steps since baseline
+          const newSteps = result.steps - baselineStepsRef.current;
+          if (newSteps > 0) {
+            console.log("Adding steps:", newSteps);
+            // Update baseline and add the difference
+            baselineStepsRef.current = result.steps;
+            addSteps(newSteps);
+
+            // Update notification with new step count
+            const newTotal = useStepStore.getState().currentSteps;
+            updateTrackingNotification(newTotal);
+          }
+        });
       } catch (err) {
         console.error("Error subscribing to pedometer:", err);
-        setIsPedometerAvailable("unavailable");
       }
     };
 
     subscribe();
 
     return () => {
-      if (subscription) {
-        subscription.remove();
+      if (subscriptionRef.current) {
+        subscriptionRef.current.remove();
+        subscriptionRef.current = null;
       }
       baselineStepsRef.current = null;
     };
-  }, []);
+  }, [isTracking, isPedometerAvailable]);
 
+  const handleToggleTracking = async () => {
+    if (isTracking) {
+      await stopStepTracking();
+    } else {
+      await startStepTracking();
+    }
+  };
 
   const progress = Math.min(currentSteps / dailyGoal, 1);
   const progressPercent = Math.round(progress * 100);
-
 
   // Calorie calculation (rough estimate: 0.04 calories per step)
   const caloriesBurned = Math.round(currentSteps * 0.04);
@@ -172,7 +217,7 @@ export default function StepsScreen() {
         </View>
 
         {/* Main Progress Circle */}
-        <View className="items-center mb-8">
+        <View className="items-center mb-6">
           <View className="relative">
             <Svg width={size} height={size}>
               {/* Background Circle */}
@@ -221,36 +266,41 @@ export default function StepsScreen() {
           </View>
         </View>
 
+        {/* Play/Pause Control */}
+        <View className="items-center mb-6">
+          <TouchableOpacity
+            onPress={handleToggleTracking}
+            className={`rounded-full p-4 shadow-lg ${
+              isTracking ? "bg-red-500" : "bg-purple-500"
+            }`}
+            activeOpacity={0.8}
+            disabled={isPedometerAvailable !== "available"}
+          >
+            <Ionicons
+              name={isTracking ? "pause" : "play"}
+              size={30}
+              color="white"
+            />
+          </TouchableOpacity>
+          <Text className="text-gray-600 mt-3 font-medium">
+            {isPedometerAvailable === "checking"
+              ? "Checking sensor..."
+              : isPedometerAvailable === "unavailable"
+              ? "Pedometer not available"
+              : isTracking
+              ? "Tracking Active - Tap to Pause"
+              : "Tap to Start Tracking"}
+          </Text>
+        </View>
+
         {/* Pedometer Status */}
-        {isPedometerAvailable === "checking" && (
-          <View className="bg-yellow-50 rounded-2xl p-4 mb-4 border border-yellow-200">
-            <Text className="text-yellow-700 text-center">
-              Checking pedometer availability...
-            </Text>
-          </View>
-        )}
         {isPedometerAvailable === "unavailable" && (
           <View className="bg-red-50 rounded-2xl p-4 mb-4 border border-red-200">
             <Text className="text-red-700 text-center">
-              Pedometer not available on this device
+              Pedometer not available on this device. Please ensure you have granted activity permissions.
             </Text>
           </View>
         )}
-        {isPedometerAvailable === "available" && Platform.OS === "android" && (
-          <View className="bg-blue-50 rounded-2xl p-4 mb-4 border border-blue-200">
-            <Text className="text-blue-700 text-center text-sm">
-              Note: Expo Go may not detect steps. Use the test button below or create a development build for full functionality.
-            </Text>
-            <TouchableOpacity
-              onPress={() => addSteps(10)}
-              className="bg-blue-500 rounded-xl py-2 px-4 mt-3 self-center"
-              activeOpacity={0.8}
-            >
-              <Text className="text-white font-semibold">+ Add 10 Test Steps</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
 
         {/* Stats Cards */}
         <View className="flex-row gap-4 mb-6">

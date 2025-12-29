@@ -412,12 +412,13 @@ export default function Profile() {
 
           {/* BMI Card */}
           {bmi && !isEditing && (
-            <View className="px-6 mb-8">
+            <View className="px-6 mb-8 ">
               <LinearGradient
                 colors={["#9333ea", "#7928ca"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 className="rounded-3xl p-6 shadow-xl shadow-purple-300"
+                style={{ borderRadius: 24 }}
               >
                 <View className="flex-row items-center justify-between">
                   <View>

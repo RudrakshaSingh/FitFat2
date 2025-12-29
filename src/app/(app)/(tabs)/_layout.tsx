@@ -37,16 +37,7 @@ function Layout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="exercise"
-        options={{
-          title: "Exercises",
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="book" color={color} size={size} />
-          ),
-        }}
-      />
+      
       <Tabs.Screen
         name="workout"
         options={{
@@ -54,6 +45,16 @@ function Layout() {
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Entypo name="circle-with-plus" size={size + 4} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="exercise"
+        options={{
+          title: "Exercises",
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign name="book" color={color} size={size} />
           ),
         }}
       />

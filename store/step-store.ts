@@ -7,6 +7,7 @@ export interface StepStore {
   currentSteps: number;
   dailyGoal: number;
   lastResetDate: string; // ISO date string for tracking daily reset
+  isTracking: boolean; // Whether step counting is active
 
   // Actions
   setCurrentSteps: (steps: number) => void;
@@ -14,6 +15,9 @@ export interface StepStore {
   setDailyGoal: (goal: number) => void;
   resetSteps: () => void;
   checkAndResetForNewDay: () => void;
+  startTracking: () => void;
+  stopTracking: () => void;
+  toggleTracking: () => void;
 }
 
 const getTodayDateString = () => new Date().toISOString().split("T")[0];
@@ -24,6 +28,7 @@ export const useStepStore = create<StepStore>()(
       currentSteps: 0,
       dailyGoal: 10000, // Default goal of 10,000 steps
       lastResetDate: getTodayDateString(),
+      isTracking: false, // Default to not tracking
 
       setCurrentSteps: (steps) =>
         set({
@@ -53,9 +58,16 @@ export const useStepStore = create<StepStore>()(
           set({
             currentSteps: 0,
             lastResetDate: today,
+            isTracking: false, // Stop tracking on new day
           });
         }
       },
+
+      startTracking: () => set({ isTracking: true }),
+      
+      stopTracking: () => set({ isTracking: false }),
+      
+      toggleTracking: () => set((state) => ({ isTracking: !state.isTracking })),
     }),
     {
       name: "step-store",
@@ -64,6 +76,7 @@ export const useStepStore = create<StepStore>()(
         dailyGoal: state.dailyGoal,
         currentSteps: state.currentSteps,
         lastResetDate: state.lastResetDate,
+        isTracking: state.isTracking,
       }),
     }
   )
