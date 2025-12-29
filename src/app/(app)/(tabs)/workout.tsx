@@ -15,14 +15,25 @@ export default function Workout() {
       {/* Main Start Workout Screen */}
       <View className="flex-1 px-6">
         {/* Header */}
-        <View className="pt-4 pb-6">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">
-            Ready to Train?
-          </Text>
+        <View className="pt-4 pb-6 flex-row justify-between items-start">
+          <View className="flex-1">
+            <Text className="text-3xl font-bold text-gray-900 mb-2">
+              Ready to Train?
+            </Text>
 
-          <Text className="text-lg text-gray-600">
-            Start your workout session
-          </Text>
+            <Text className="text-lg text-gray-600">
+              Start your workout session
+            </Text>
+          </View>
+
+          {/* History Button */}
+          <TouchableOpacity
+            onPress={() => router.push("/history")}
+            className="bg-purple-100 w-12 h-12 rounded-full items-center justify-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="time-outline" size={24} color="#9333EA" />
+          </TouchableOpacity>
         </View>
       </View>
       {/* Generic Start Workout Card */}

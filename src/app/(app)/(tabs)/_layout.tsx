@@ -74,6 +74,7 @@ function Layout() {
         options={{
           title: "History",
           headerShown: false,
+          href: null, // Hidden - accessed via workout screen
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="clock-circle" color={color} size={size} />
           ),

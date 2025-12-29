@@ -95,7 +95,7 @@ export default function ActiveWorkout() {
           style: "destructive",
           onPress: () => {
             resetWorkout();
-            router.back();
+            router.replace("/(app)/(tabs)/workout");
           },
         },
       ]
@@ -187,7 +187,8 @@ export default function ActiveWorkout() {
     // Reset the workout
     resetWorkout();
 
-    router.replace("/(app)/(tabs)/history?refresh=true");
+    // Navigate to workout tab first, then to history
+    router.replace("/(app)/(tabs)/workout");
   };
 
   const saveWorkoutToDatabase = async () => {

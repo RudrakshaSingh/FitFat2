@@ -125,7 +125,13 @@ export default function HistoryPage() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
-        <View className="px-6 py-4 bg-white">
+        <View className="px-6 py-4 bg-white flex-row items-center">
+          <TouchableOpacity
+            onPress={() => router.replace("/(app)/(tabs)/workout")}
+            className="mr-3"
+          >
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
           <Text className="text-2xl font-bold text-gray-900">
             Workout History
           </Text>
@@ -143,11 +149,19 @@ export default function HistoryPage() {
     <SafeAreaView className="bg-gray-50 flex-1">
       {/* Header  */}
       <View className="px-6 py-4 bg-white border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-900">
-          Workout History
-        </Text>
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={() => router.replace("/(app)/(tabs)/workout")}
+            className="mr-3"
+          >
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text className="text-2xl font-bold text-gray-900">
+            Workout History
+          </Text>
+        </View>
 
-        <Text className="text-gray-600 mt-1">
+        <Text className="text-gray-600 mt-1 ml-9">
           {workouts.length} workout{workouts.length !== 1 ? "s" : ""} completed
         </Text>
       </View>
