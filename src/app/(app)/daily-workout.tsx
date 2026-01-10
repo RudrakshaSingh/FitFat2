@@ -68,18 +68,12 @@ export default function DailyWorkout() {
     setLoading(true);
 
     try {
+      // Fetch program via API
       const response = await fetch("/api/get-weekly-program", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id }),
       });
-
-      if (!response.ok) {
-        console.error("API error:", response.status);
-        setLoading(false);
-        return;
-      }
-
       const data = await response.json();
       
       if (data.program) {

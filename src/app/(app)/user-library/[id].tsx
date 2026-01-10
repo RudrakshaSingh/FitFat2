@@ -20,6 +20,8 @@ import {
   getDifficultyText,
 } from "../../components/ExerciseCard";
 import Markdown from "react-native-markdown-display";
+import CustomAlert from "@/app/components/CustomAlert";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 export default function ExerciseDetail() {
   const [exercise, setExercise] = useState<Exercise | null>(null);
@@ -28,6 +30,7 @@ export default function ExerciseDetail() {
   const [aiLoading, setAILoading] = useState(false);
   const { id } = useLocalSearchParams();
   const { user } = useUser();
+  const deleteExerciseAlert = useCustomAlert();
 
   useEffect(() => {
     // Fetch exercise details based on the id
@@ -79,8 +82,6 @@ export default function ExerciseDetail() {
     if (!exercise || !user) return;
     if (loading) return;
 
-    setLoading(true);
-
     try {
         // Check for references first
         const count = await client.fetch(
@@ -89,10 +90,9 @@ export default function ExerciseDetail() {
         );
 
         if (count > 0) {
-            setLoading(false); // Stop loading to show alert
-            Alert.alert(
-                "⚠️ Usage Warning",
-                `This exercise is used in ${count} workout(s). \n\nDeleting it will PERMANENTLY DELETE those entire workout logs from your history.\n\nThis cannot be undone.`,
+            deleteExerciseAlert.showAlert(
+                "Exercise In Use",
+                `This exercise is used in ${count} workout(s). What would you like to do?`,
                 [
                     { text: "Cancel", style: "cancel" },
                     {
@@ -104,8 +104,7 @@ export default function ExerciseDetail() {
             );
         } else {
              // No references, confirm standard delete
-             setLoading(false);
-             Alert.alert(
+             deleteExerciseAlert.showAlert(
                 "Delete Exercise",
                 "Are you sure you want to delete this exercise?",
                 [
@@ -120,7 +119,6 @@ export default function ExerciseDetail() {
         }
     } catch (error) {
         console.error("Check references error:", error);
-        setLoading(false);
         Alert.alert("Error", "Could not verify exercise usage.");
     }
   };
@@ -350,6 +348,15 @@ export default function ExerciseDetail() {
           <View className="h-10" /> 
         </View>
       </ScrollView>
+
+      {/* Custom Alert for Delete Exercise */}
+      <CustomAlert
+        visible={deleteExerciseAlert.visible}
+        title={deleteExerciseAlert.config.title}
+        message={deleteExerciseAlert.config.message}
+        buttons={deleteExerciseAlert.config.buttons}
+        onClose={deleteExerciseAlert.hideAlert}
+      />
     </SafeAreaView>
   );
 }

@@ -37,3 +37,9 @@ npx sanity typegen generate
 made automatic cmd npm run typegen in cd sanity
 
 run this even after defining query grok and need to create query with unique name each type
+
+### imp
+eas build --profile development --platform android
+The command eas build --profile development --platform android will initiate a build of your Expo project on the Expo Application Services (EAS) cloud servers, specifically for the Android platform using the development build profile. 
+just run on laptop while debugging
+npx expo start --dev-client

@@ -25,8 +25,8 @@ interface Exercise {
 
 interface PlannedExercise {
   exerciseRef: string; // Just the ID for saving
-  plannedSets: number;
-  plannedReps: number;
+  plannedSets: number | string;
+  plannedReps: number | string;
   notes?: string;
   // For display
   exercise?: Exercise;
@@ -61,13 +61,12 @@ export default function EditDayWorkout() {
       );
       setAvailableExercises(userExercises);
 
-      // Fetch existing program
+      // Fetch existing program via API
       const response = await fetch("/api/get-weekly-program", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id }),
       });
-
       const data = await response.json();
 
       if (data.program) {
@@ -76,18 +75,18 @@ export default function EditDayWorkout() {
 
         const dayPlan = data.program.days?.find((d: any) => d.dayOfWeek === day);
         if (dayPlan) {
-          setWorkoutName(dayPlan.workoutName || "");
-          setIsRestDay(dayPlan.isRestDay || false);
-          
-          // Map exercises with their data
-          const mappedExercises = (dayPlan.exercises || []).map((ex: any) => ({
-            exerciseRef: ex.exerciseRef?._id,
-            plannedSets: ex.plannedSets || 3,
-            plannedReps: ex.plannedReps || 10,
-            notes: ex.notes || "",
-            exercise: ex.exerciseRef,
-          }));
-          setExercises(mappedExercises);
+            setWorkoutName(dayPlan.workoutName || "");
+            setIsRestDay(dayPlan.isRestDay || false);
+            
+            // Map exercises with their data
+            const mappedExercises = (dayPlan.exercises || []).map((ex: any) => ({
+              exerciseRef: ex.exerciseRef?._id,
+              plannedSets: ex.plannedSets || 3,
+              plannedReps: ex.plannedReps || 10,
+              notes: ex.notes || "",
+              exercise: ex.exerciseRef,
+            }));
+            setExercises(mappedExercises);
         }
       }
     } catch (error) {
@@ -129,7 +128,22 @@ export default function EditDayWorkout() {
     value: any
   ) => {
     const updated = [...exercises];
-    updated[index] = { ...updated[index], [field]: value };
+    
+    if (field === "plannedSets" || field === "plannedReps") {
+      // Allow empty string or valid numbers only
+      if (value === "") {
+        updated[index] = { ...updated[index], [field]: "" };
+      } else {
+        // Only update if it's a valid number
+        const num = parseInt(value);
+        if (!isNaN(num)) {
+          updated[index] = { ...updated[index], [field]: value }; // Keep as string for input
+        }
+      }
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
+    
     setExercises(updated);
   };
 
@@ -138,23 +152,30 @@ export default function EditDayWorkout() {
     setSaving(true);
 
     try {
-      // Build the day plan
       const updatedDayPlan = {
         dayOfWeek: day,
         isRestDay,
         workoutName: workoutName || undefined,
-        exercises: exercises.map((ex) => ({
-          _type: "plannedExercise",
-          exerciseRef: { _type: "reference", _ref: ex.exerciseRef },
-          plannedSets: ex.plannedSets,
-          plannedReps: ex.plannedReps,
-          notes: ex.notes || undefined,
-        })),
+        exercises: exercises.map((ex) => {
+          const sets = Number(ex.plannedSets);
+          const reps = Number(ex.plannedReps);
+
+          if (!sets || !reps) {
+            throw new Error(`Please fill in sets and reps for ${ex.exercise?.name || "all exercises"}`);
+          }
+
+          return {
+            exerciseRef: ex.exerciseRef,
+            plannedSets: sets,
+            plannedReps: reps,
+            notes: ex.notes || undefined,
+          };
+        }),
       };
 
       // Update or create the days array
       let updatedDays = [...allDays];
-      const existingIndex = updatedDays.findIndex((d) => d.dayOfWeek === day);
+      const existingIndex = updatedDays.findIndex((d: any) => d.dayOfWeek === day);
       
       if (existingIndex >= 0) {
         updatedDays[existingIndex] = updatedDayPlan;
@@ -162,31 +183,29 @@ export default function EditDayWorkout() {
         updatedDays.push(updatedDayPlan);
       }
 
-      // Save to API
       const response = await fetch("/api/save-weekly-program", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
           program: {
-            name: "My Weekly Program",
-            days: updatedDays,
+             name: "My Weekly Program",
+             days: updatedDays
           },
         }),
       });
-
-      const result = await response.json();
 
       if (response.ok) {
         Alert.alert("Saved!", "Your workout plan has been updated.", [
           { text: "OK", onPress: () => router.back() },
         ]);
       } else {
-        Alert.alert("Error", result.error || "Failed to save");
+        const data = await response.json();
+        Alert.alert("Error", data.message || "Failed to save");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Save error:", error);
-      Alert.alert("Error", "Something went wrong");
+      Alert.alert("Error", error.message || "Something went wrong");
     } finally {
       setSaving(false);
     }
@@ -303,9 +322,9 @@ export default function EditDayWorkout() {
                       <TextInput
                         className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-center"
                         keyboardType="number-pad"
-                        value={String(ex.plannedSets)}
+                        value={ex.plannedSets.toString()}
                         onChangeText={(v) =>
-                          handleUpdateExercise(index, "plannedSets", parseInt(v) || 0)
+                          handleUpdateExercise(index, "plannedSets", v)
                         }
                       />
                     </View>
@@ -314,9 +333,9 @@ export default function EditDayWorkout() {
                       <TextInput
                         className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-center"
                         keyboardType="number-pad"
-                        value={String(ex.plannedReps)}
+                        value={ex.plannedReps.toString()}
                         onChangeText={(v) =>
-                          handleUpdateExercise(index, "plannedReps", parseInt(v) || 0)
+                          handleUpdateExercise(index, "plannedReps", v)
                         }
                       />
                     </View>

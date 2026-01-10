@@ -145,7 +145,7 @@ export default function ExerciseDetail() {
                   <MaterialCommunityIcons name="dumbbell" size={24} color="#9333EA" />
                 </View>
                 <Text className="text-[10px] text-gray-400 uppercase tracking-wide font-bold">Equipment</Text>
-                <Text className="text-sm font-bold text-gray-900 capitalize mt-0.5">
+                <Text className="text-sm font-bold text-gray-900 capitalize mt-0.5 text-center">
                   {exercise.equipment || "None"}
                 </Text>
               </View>
@@ -293,7 +293,7 @@ export default function ExerciseDetail() {
           onPress={addToUserLibrary}
           disabled={saving || saved}
           activeOpacity={0.9}
-          className={`py-5 rounded-2xl items-center flex-row justify-center shadow-lg ${
+          className={`py-5 rounded-2xl items-center justify-center shadow-lg ${
             saved 
               ? "bg-emerald-500" 
               : saving 
@@ -305,22 +305,11 @@ export default function ExerciseDetail() {
           }}
         >
           {saving ? (
-            <>
-              <ActivityIndicator color="white" size="small" />
-              <Text className="text-white text-lg font-bold ml-2">Saving...</Text>
-            </>
+            <Text className="text-white text-lg font-bold">Saving...</Text>
           ) : saved ? (
-            <>
-              <Ionicons name="checkmark-circle" size={24} color="white" />
-              <Text className="text-white text-lg font-bold ml-2">Added to Library!</Text>
-            </>
+            <Text className="text-white text-lg font-bold">✓ Added to Library!</Text>
           ) : (
-            <>
-              <View className="bg-white rounded-full p-0.5 mr-2">
-                <Ionicons name="add" size={20} color="#9333EA" />
-              </View>
-              <Text className="text-white text-lg font-bold">Add to My Library</Text>
-            </>
+            <Text className="text-white text-lg font-bold">+ Add to Library</Text>
           )}
         </TouchableOpacity>
       </View>

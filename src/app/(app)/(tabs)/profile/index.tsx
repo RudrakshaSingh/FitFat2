@@ -16,6 +16,8 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
+import CustomAlert from "@/app/components/CustomAlert";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 const MAX_WEIGHT_KG = 200;
 const MAX_WEIGHT_LBS = 440.9; // 200 kg in lbs
@@ -27,6 +29,7 @@ export default function Profile() {
   const { signOut } = useAuth();
   const { user } = useUser();
   const router = useRouter();
+  const signOutAlert = useCustomAlert();
 
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
@@ -269,7 +272,7 @@ export default function Profile() {
   };
 
   const handleSignOut = () => {
-    Alert.alert(
+    signOutAlert.showAlert(
       "Sign Out",
       "Are you sure you want to sign out?",
       [
@@ -282,8 +285,7 @@ export default function Profile() {
           style: "destructive",
           onPress: () => signOut(),
         },
-      ],
-      { cancelable: true }
+      ]
     );
   };
 
@@ -936,21 +938,32 @@ export default function Profile() {
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity
-              onPress={handleSignOut}
-              className="mx-6 bg-red-50 rounded-2xl p-4 mb-8 border border-red-100"
-              activeOpacity={0.8}
-            >
-              <View className="flex-row items-center justify-center">
-                <Ionicons name="log-out-outline" size={20} color="#dc2626" />
-                <Text className="text-red-600 font-bold text-lg ml-2">
-                  Sign Out
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View className="mx-6 mb-8">
+              <TouchableOpacity
+                onPress={handleSignOut}
+                className="bg-red-50 rounded-2xl p-4 border border-red-100"
+                activeOpacity={0.8}
+              >
+                <View className="flex-row items-center justify-center">
+                  <Ionicons name="log-out-outline" size={20} color="#dc2626" />
+                  <Text className="text-red-600 font-bold text-lg ml-2">
+                    Sign Out
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </KeyboardAwareScrollView>
+
+      {/* Custom Alert for Sign Out */}
+      <CustomAlert
+        visible={signOutAlert.visible}
+        title={signOutAlert.config.title}
+        message={signOutAlert.config.message}
+        buttons={signOutAlert.config.buttons}
+        onClose={signOutAlert.hideAlert}
+      />
     </SafeAreaView>
   );
 }

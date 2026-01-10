@@ -62,40 +62,37 @@ export default function AddCustomExercise() {
       Alert.alert("Error", "Please enter an exercise name");
       return;
     }
-    // Image is now optional
-
 
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/add-execisie-to-library", {
+      const exercise = {
+        name: name.trim(),
+        description,
+        difficulty: difficulty || "beginner",
+        target: target || undefined,
+        videoUrl: videoUrl.trim() 
+          ? (/^https?:\/\//i.test(videoUrl.trim()) ? videoUrl.trim() : `https://${videoUrl.trim()}`) 
+          : undefined,
+        gifUrl: image || undefined,
+      };
+
+      const result = await fetch("/api/add-execisie-to-library", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user?.id,
-          exercise: {
-            name,
-            target: target || undefined,
-            description,
-            difficulty,
-            gifUrl: image || undefined, // Naming it gifUrl to match API expectation, but it contains base64/uri
-            videoUrl: videoUrl.trim() 
-                ? (/^https?:\/\//i.test(videoUrl.trim()) ? videoUrl.trim() : `https://${videoUrl.trim()}`) 
-                : undefined,
-          },
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ exercise, userId: user?.id }),
       });
 
-      const result = await response.json();
+      const data = await result.json();
 
-      if (response.ok) {
+      if (result.ok) {
         Alert.alert("Success", "Exercise added successfully!", [
           { text: "OK", onPress: () => router.back() },
         ]);
+      } else if (data.error === "duplicate") {
+        Alert.alert("Oops!", "This exercise already exists in your library.");
       } else {
-        throw new Error(result.error || "Failed to save exercise");
+        Alert.alert("Error", data.message || "Failed to save exercise. Try again.");
       }
     } catch (error) {
       console.error(error);

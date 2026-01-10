@@ -17,6 +17,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import exercise from "sanity/schemaTypes/exercise";
+import CustomAlert from "@/app/components/CustomAlert";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 export const getWorkoutRecordQuery = defineQuery(`
   *[_type == "workout" && _id == $workoutId][0]{
@@ -50,6 +52,7 @@ export default function WorkoutRecord() {
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
   const { user } = useUser();
+  const deleteAlert = useCustomAlert();
 
   // Get user's preferred weight unit from Clerk metadata
   const userWeightUnit = (user?.unsafeMetadata?.weightUnit as "kg" | "lbs") || "kg";
@@ -135,7 +138,7 @@ export default function WorkoutRecord() {
   };
 
   const handleDeleteWorkout = () => {
-    Alert.alert(
+    deleteAlert.showAlert(
       "Delete Workout",
       "Are you sure you want to delete this workout? This action cannot be undone.",
       [
@@ -375,6 +378,15 @@ export default function WorkoutRecord() {
           ))}
         </View>
       </ScrollView>
+
+      {/* Custom Alert for Delete Workout */}
+      <CustomAlert
+        visible={deleteAlert.visible}
+        title={deleteAlert.config.title}
+        message={deleteAlert.config.message}
+        buttons={deleteAlert.config.buttons}
+        onClose={deleteAlert.hideAlert}
+      />
     </SafeAreaView>
   );
 }
