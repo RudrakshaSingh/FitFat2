@@ -126,76 +126,65 @@ export default function ExerciseDetail() {
         {/* Content Card */}
         <View className="bg-white -mt-10 rounded-t-[32px] min-h-screen">
           <View className="px-6 pt-8 pb-32">
-            {/* Title Section */}
-            <View className="mb-6">
-              <Text className="text-3xl font-extrabold text-gray-900 capitalize leading-tight mb-2">
+            {/* Title Section - MATCHED TO IMAGE */}
+            <View className="mb-8 items-center">
+              <Text className="text-2xl font-extrabold text-gray-900 capitalize text-center leading-normal">
                 {exercise.name.replace(/-/g, " ")}
               </Text>
               
-              {/* Target Badge */}
-              <View className="flex-row items-center">
-                <View className="bg-gradient-to-r from-purple-500 to-violet-500 px-4 py-1.5 rounded-full">
-                  <Text className="text-white font-bold text-sm uppercase tracking-wide">
-                    {exercise.target}
-                  </Text>
-                </View>
-                <Text className="text-gray-400 mx-2">•</Text>
-                <Text className="text-gray-500 font-medium capitalize">
-                  {exercise.bodyPart}
-                </Text>
-              </View>
+              <Text className="text-gray-500 font-medium capitalize mt-1">
+                 • {exercise.bodyPart}
+              </Text>
             </View>
 
-            {/* Stats Row */}
-            <View className="flex-row bg-gray-50 rounded-2xl p-4 mb-8">
+            {/* Stats Row - MATCHED TO IMAGE */}
+            <View className="flex-row justify-between mb-8">
               {/* Equipment */}
-              <View className="flex-1 items-center border-r border-gray-200">
-                <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mb-2">
+              <View className="flex-1 items-center bg-white mx-1 py-4 rounded-3xl shadow-sm border border-gray-50">
+                <View className="w-14 h-14 bg-purple-100 rounded-full items-center justify-center mb-2">
                   <MaterialCommunityIcons name="dumbbell" size={24} color="#9333EA" />
                 </View>
-                <Text className="text-xs text-gray-400 uppercase tracking-wide">Equipment</Text>
-                <Text className="text-sm font-bold text-gray-800 capitalize mt-1">
+                <Text className="text-[10px] text-gray-400 uppercase tracking-wide font-bold">Equipment</Text>
+                <Text className="text-sm font-bold text-gray-900 capitalize mt-0.5">
                   {exercise.equipment || "None"}
                 </Text>
               </View>
 
               {/* Difficulty */}
-              <View className="flex-1 items-center border-r border-gray-200">
-                <View className={`w-12 h-12 ${difficultyConfig.bg} rounded-full items-center justify-center mb-2`}>
-                  <Ionicons name={difficultyConfig.icon as any} size={24} color="white" />
+              <View className="flex-1 items-center bg-white mx-1 py-4 rounded-3xl shadow-sm border border-gray-50">
+                <View className="w-14 h-14 bg-emerald-100 rounded-full items-center justify-center mb-2">
+                  <Ionicons name="leaf" size={24} color="#10b981" />
                 </View>
-                <Text className="text-xs text-gray-400 uppercase tracking-wide">Difficulty</Text>
-                <Text className="text-sm font-bold text-gray-800 mt-1">
-                  {difficultyConfig.text}
+                <Text className="text-[10px] text-gray-400 uppercase tracking-wide font-bold">Difficulty</Text>
+                <Text className="text-sm font-bold text-gray-900 text-center mt-0.5">
+                  {exercise.difficulty || "Beginner"}
                 </Text>
               </View>
 
               {/* Category */}
-              <View className="flex-1 items-center">
-                <View className="w-12 h-12 bg-orange-100 rounded-full items-center justify-center mb-2">
+              <View className="flex-1 items-center bg-white mx-1 py-4 rounded-3xl shadow-sm border border-gray-50">
+                <View className="w-14 h-14 bg-orange-100 rounded-full items-center justify-center mb-2">
                   <Feather name="zap" size={24} color="#f97316" />
                 </View>
-                <Text className="text-xs text-gray-400 uppercase tracking-wide">Category</Text>
-                <Text className="text-sm font-bold text-gray-800 capitalize mt-1">
-                  {exercise.category || "General"}
+                <Text className="text-[10px] text-gray-400 uppercase tracking-wide font-bold">Category</Text>
+                <Text className="text-sm font-bold text-gray-900 capitalize mt-0.5">
+                  {exercise.category || "Strength"}
                 </Text>
               </View>
             </View>
 
-            {/* About Section */}
+            {/* About Section - MATCHED TO IMAGE */}
             {exercise.description && (
-              <View className="mb-8">
-                <View className="flex-row items-center mb-4">
-                  <View className="w-10 h-10 bg-purple-100 rounded-xl items-center justify-center mr-3">
-                    <Ionicons name="information-circle" size={22} color="#9333EA" />
+              <View className="mb-6">
+                <View className="flex-row items-center mb-3">
+                  <View className="w-8 h-8 bg-purple-100 rounded-full items-center justify-center mr-3">
+                    <Text className="text-purple-600 font-bold text-sm">i</Text>
                   </View>
                   <Text className="text-xl font-bold text-gray-900">About</Text>
                 </View>
-                <View className="bg-purple-50/50 rounded-2xl p-5 border border-purple-100">
-                  <Text className="text-gray-600 leading-7 text-base">
+                 <Text className="text-gray-600 leading-6 text-base">
                     {exercise.description}
                   </Text>
-                </View>
               </View>
             )}
 
@@ -327,8 +316,10 @@ export default function ExerciseDetail() {
             </>
           ) : (
             <>
-              <Ionicons name="add-circle" size={24} color="white" />
-              <Text className="text-white text-lg font-bold ml-2">Add to My Library</Text>
+              <View className="bg-white rounded-full p-0.5 mr-2">
+                <Ionicons name="add" size={20} color="#9333EA" />
+              </View>
+              <Text className="text-white text-lg font-bold">Add to My Library</Text>
             </>
           )}
         </TouchableOpacity>

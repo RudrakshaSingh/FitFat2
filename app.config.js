@@ -17,8 +17,6 @@ export default {
     android: {
       permissions: [
         "android.permission.ACTIVITY_RECOGNITION",
-        "android.permission.FOREGROUND_SERVICE",
-        "android.permission.RECEIVE_BOOT_COMPLETED",
       ],
       package: "com.rudrakshasingh.FitFat2",
       adaptiveIcon: {
@@ -28,7 +26,7 @@ export default {
     },
     ios: {
       infoPlist: {
-        UIBackgroundModes: ["fetch", "processing"],
+        // UIBackgroundModes removed as background-fetch is uninstalled
       },
     },
     plugins: [
@@ -40,19 +38,6 @@ export default {
         {
           motionPermission:
             "Allow $(PRODUCT_NAME) to access your device motion for step counting.",
-        },
-      ],
-      [
-        "expo-notifications",
-        {
-          icon: "./assets/app.png",
-          color: "#9333ea",
-        },
-      ],
-      [
-        "expo-background-fetch",
-        {
-          startOnBoot: true,
         },
       ],
     ],
