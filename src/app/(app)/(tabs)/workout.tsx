@@ -5,6 +5,7 @@ import { StatusBar, Text, TouchableOpacity, View, ActivityIndicator } from "reac
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { useWorkoutStore } from "store/workout-store";
+import { getWeeklyProgram } from "@/lib/sanity/sanity-service";
 
 // Map day index to day name
 const dayIndexToName: { [key: number]: string } = {
@@ -56,12 +57,7 @@ export default function Workout() {
     }
 
     try {
-      const response = await fetch("/api/get-weekly-program", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
-      });
-      const data = await response.json();
+      const data = await getWeeklyProgram(user.id);
 
       if (data.program) {
         setHasProgram(true);

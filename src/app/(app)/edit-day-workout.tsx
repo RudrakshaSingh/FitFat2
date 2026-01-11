@@ -14,6 +14,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { client, urlFor } from "@/lib/sanity/client";
+import { getWeeklyProgram, saveWeeklyProgram } from "@/lib/sanity/sanity-service";
 import CustomAlert, { CustomAlertButton } from "@/app/components/CustomAlert";
 
 interface Exercise {
@@ -87,13 +88,8 @@ export default function EditDayWorkout() {
       );
       setAvailableExercises(userExercises);
 
-      // Fetch existing program via API
-      const response = await fetch("/api/get-weekly-program", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
-      });
-      const data = await response.json();
+      // Fetch existing program via direct service
+      const data = await getWeeklyProgram(user.id);
 
       if (data.program) {
         setProgramId(data.program._id);
@@ -292,25 +288,17 @@ export default function EditDayWorkout() {
         updatedDays.push(updatedDayPlan);
       }
 
-      const response = await fetch("/api/save-weekly-program", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          program: {
-            name: "My Weekly Program",
-            days: updatedDays,
-          },
-        }),
+      const result = await saveWeeklyProgram(user.id, {
+        name: "My Weekly Program",
+        days: updatedDays,
       });
 
-      if (response.ok) {
+      if (result.success) {
         showAlert("Saved!", "Your workout plan has been updated.", [
           { text: "OK", onPress: () => router.back() },
         ]);
       } else {
-        const data = await response.json();
-        showAlert("Error", data.message || "Failed to save");
+        showAlert("Error", "Failed to save");
       }
     } catch (error: any) {
       console.error("Save error:", error);

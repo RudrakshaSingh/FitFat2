@@ -18,6 +18,7 @@ import CustomAlert, { CustomAlertButton } from "@/app/components/CustomAlert";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { defineQuery } from "groq";
 import { client } from "@/lib/sanity/client";
+import { saveWorkout as saveWorkoutToSanity, WorkoutData } from "@/lib/sanity/sanity-service";
 import { useUser } from "@clerk/clerk-expo";
 
 
@@ -303,7 +304,7 @@ export default function ActiveWorkout() {
       }
 
       // Create the workout document
-      const workoutData = {
+      const workoutData: WorkoutData = {
         _type: "workout",
         userId: user.id,
         date: new Date().toISOString(),
@@ -311,14 +312,8 @@ export default function ActiveWorkout() {
         exercises: validExercises,
       };
 
-      // Save the workout to Sanity
-      const result = await fetch("/api/save-workout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ workoutData }),
-      });
+      // Save the workout to Sanity using direct service
+      const result = await saveWorkoutToSanity(workoutData);
 
       console.log("workout saved", result);
       return true;

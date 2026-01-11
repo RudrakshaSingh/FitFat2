@@ -15,6 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import { launchImageLibraryAsync, MediaType } from "expo-image-picker";
 import { useUser } from "@clerk/clerk-expo";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { addExerciseToLibrary } from "@/lib/sanity/sanity-service";
 import CustomAlert from "@/app/components/CustomAlert";
 import { useCustomAlert } from "@/hooks/useCustomAlert";
 
@@ -79,22 +80,16 @@ export default function AddCustomExercise() {
         gifUrl: image || undefined,
       };
 
-      const result = await fetch("/api/add-execisie-to-library", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exercise, userId: user?.id }),
-      });
+      const result = await addExerciseToLibrary(user!.id, exercise);
 
-      const data = await result.json();
-
-      if (result.ok) {
+      if (result.success) {
         alert.showAlert("Success", "Exercise added successfully!", [
           { text: "OK", onPress: () => router.back() },
         ]);
-      } else if (data.error === "duplicate") {
+      } else if (result.error === "duplicate") {
         alert.showAlert("Oops!", "This exercise already exists in your library.");
       } else {
-        alert.showAlert("Error", data.message || "Failed to save exercise. Try again.");
+        alert.showAlert("Error", result.message || "Failed to save exercise. Try again.");
       }
     } catch (error) {
       console.error(error);

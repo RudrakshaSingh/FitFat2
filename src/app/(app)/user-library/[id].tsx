@@ -14,6 +14,8 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { client, urlFor } from "@/lib/sanity/client";
+import { deleteExercise as deleteExerciseFromSanity, getExerciseReferenceCount } from "@/lib/sanity/sanity-service";
+import { getExerciseGuide } from "@/lib/ai-service";
 import {
   getDifficultyColor,
   getDifficultyText,
@@ -56,20 +58,8 @@ export default function ExerciseDetail() {
     setAILoading(true);
 
     try {
-      const response = await fetch("/api/ai", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ exerciseName: exercise.name }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch AI guidance. Please try again.");
-      }
-
-      const data = await response.json();
-      setAIGuidance(data.message);
+      const guidance = await getExerciseGuide(exercise.name);
+      setAIGuidance(guidance);
     } catch (error) {
       console.error("Error fetching AI guidance:", error);
       setAIGuidance("Failed to fetch AI guidance. Please try again.");
@@ -83,11 +73,8 @@ export default function ExerciseDetail() {
     if (loading) return;
 
     try {
-        // Check for references first
-        const count = await client.fetch(
-            `count(*[_type == "workout" && references($id)])`,
-            { id: exercise._id }
-        );
+        // Check for references using adminClient (via service) for consistency
+        const count = await getExerciseReferenceCount(exercise._id);
 
         if (count > 0) {
             deleteExerciseAlert.showAlert(
@@ -126,24 +113,18 @@ export default function ExerciseDetail() {
   const performDelete = async (cascade: boolean) => {
     setLoading(true);
     try {
-        const response = await fetch("/api/delete-exercise", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: exercise?._id, userId: user?.id, cascade }),
-        });
-        
-        const data = await response.json();
+      const result = await deleteExerciseFromSanity(exercise!._id, user!.id, cascade);
 
-        if (response.ok) {
-            router.back();
-        } else {
-            errorAlert.showAlert("Error", data.error || "Failed to delete exercise");
-            setLoading(false);
-        }
-    } catch (error) {
-        console.error("Delete error:", error);
-        errorAlert.showAlert("Error", "Something went wrong.");
+      if (result.success) {
+        router.back();
+      } else {
+        errorAlert.showAlert("Error", "Failed to delete exercise");
         setLoading(false);
+      }
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      errorAlert.showAlert("Error", error.message || "Something went wrong.");
+      setLoading(false);
     }
   };
 

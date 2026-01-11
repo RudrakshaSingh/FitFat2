@@ -1,9 +1,9 @@
 import { createClient } from "@sanity/client";
 import { createImageUrlBuilder } from "@sanity/image-url";
-import Constants from "expo-constants";
 
-// Get token from app config (works in production) or fallback to process.env (works in dev)
-const sanityToken = Constants.expoConfig?.extra?.sanityApiToken || process.env.EXPO_PUBLIC_SANITY_API_TOKEN;
+// EXPO_PUBLIC_ prefixed env vars are replaced at build time by Metro bundler
+// This works for both client code and API routes in production APK
+const SANITY_TOKEN = process.env.EXPO_PUBLIC_SANITY_API_TOKEN;
 
 // Client safe config to be used in the studio and the front-end
 export const config = {
@@ -18,7 +18,7 @@ export const client = createClient(config);
 // Admin client for mutations and other admin tasks
 export const adminConfig = {
   ...config,
-  token: sanityToken,
+  token: SANITY_TOKEN,
 };
 export const adminClient = createClient(adminConfig);
 
@@ -26,4 +26,3 @@ export const adminClient = createClient(adminConfig);
 const builder = createImageUrlBuilder(client);
 
 export const urlFor = (source: string) => builder.image(source);
-

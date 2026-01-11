@@ -13,6 +13,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { urlFor } from "@/lib/sanity/client";
+import { getWeeklyProgram } from "@/lib/sanity/sanity-service";
 import CustomAlert, { CustomAlertButton } from "@/app/components/CustomAlert";
 
 interface PlannedSet {
@@ -84,13 +85,8 @@ export default function DailyWorkout() {
     setLoading(true);
 
     try {
-      // Fetch program via API
-      const response = await fetch("/api/get-weekly-program", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
-      });
-      const data = await response.json();
+      // Fetch program via direct service
+      const data = await getWeeklyProgram(user.id);
       
       if (data.program) {
         setProgram(data.program);

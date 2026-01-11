@@ -6,7 +6,6 @@ import {
   View,
   ScrollView,
   Image,
-  Alert,
   ActivityIndicator,
   Animated,
 } from "react-native";
@@ -14,6 +13,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
+import { addExerciseToLibrary } from "@/lib/sanity/sanity-service";
+import CustomAlert from "@/app/components/CustomAlert";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 export default function ExerciseDetail() {
   const { user } = useUser();
@@ -22,6 +24,7 @@ export default function ExerciseDetail() {
   const exercise = raw ? JSON.parse(raw) : null;
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const alert = useCustomAlert();
 
   if (!exercise) {
     return (
@@ -58,26 +61,29 @@ export default function ExerciseDetail() {
     setSaving(true);
 
     try {
-      const result = await fetch("/api/add-execisie-to-library", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exercise, userId: user?.id }),
-      });
+      const exerciseData = {
+        name: exercise.name,
+        description: exercise.description,
+        difficulty: exercise.difficulty,
+        target: exercise.target,
+        gifUrl: exercise.gifUrl,
+        videoUrl: exercise.videoUrl,
+      };
 
-      const data = await result.json();
+      const result = await addExerciseToLibrary(user!.id, exerciseData);
 
-      if (result.ok) {
+      if (result.success) {
         setSaved(true);
-        Alert.alert("Success! 🎉", "Exercise added to your library.");
-      } else if (data.error === "duplicate") {
+        alert.showAlert("Success! 🎉", "Exercise added to your library.");
+      } else if (result.error === "duplicate") {
         setSaved(true); // Mark as saved since it already exists
-        Alert.alert("Oops!", "This exercise already added.");
+        alert.showAlert("Oops!", "This exercise already added.");
       } else {
-        Alert.alert("Error", data.message || "Failed to save exercise. Try again.");
+        alert.showAlert("Error", result.message || "Failed to save exercise. Try again.");
       }
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Something went wrong.");
+      alert.showAlert("Error", "Something went wrong.");
     } finally {
       setSaving(false);
     }
@@ -313,6 +319,15 @@ export default function ExerciseDetail() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alert.visible}
+        title={alert.config.title}
+        message={alert.config.message}
+        buttons={alert.config.buttons}
+        onClose={alert.hideAlert}
+      />
     </View>
   );
 }

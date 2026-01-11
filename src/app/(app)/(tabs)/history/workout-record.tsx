@@ -7,7 +7,6 @@ import { formatDuration } from "lib/util";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -15,8 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
-import exercise from "sanity/schemaTypes/exercise";
+import { deleteWorkout as deleteWorkoutFromSanity } from "@/lib/sanity/sanity-service";
 import CustomAlert from "@/app/components/CustomAlert";
 import { useCustomAlert } from "@/hooks/useCustomAlert";
 
@@ -149,34 +147,26 @@ export default function WorkoutRecord() {
         {
           text: "Delete",
           style: "destructive",
-          onPress: deleteWorkout,
+          onPress: performDeleteWorkout,
         },
       ]
     );
   };
 
-  const deleteWorkout = async () => {
+  const performDeleteWorkout = async () => {
     if (!workoutId) return;
 
     setDeleting(true);
 
     try {
-      await fetch("/api/delete-workout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ workoutId }),
-      });
+      await deleteWorkoutFromSanity(workoutId as string);
 
       // Navigate back & refresh history page
       router.replace("/(app)/(tabs)/history?refresh=true");
     } catch (error) {
       console.error("Error deleting workout:", error);
 
-      Alert.alert("Error", "Failed to delete workout. Please try again.", [
-        { text: "OK" },
-      ]);
+      deleteAlert.showAlert("Error", "Failed to delete workout. Please try again.");
     } finally {
       setDeleting(false);
     }
