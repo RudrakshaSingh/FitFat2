@@ -84,7 +84,7 @@ export async function getWeeklyProgram(userId: string) {
             name,
             description,
             difficulty,
-            image
+            image,
           }
         }
       }
@@ -188,14 +188,15 @@ export async function deleteWorkout(workoutId: string) {
 
 // ============ Exercises ============
 
-// Helper to check how many workouts reference an exercise
+// Helper to check how many documents reference an exercise
 export async function getExerciseReferenceCount(exerciseId: string): Promise<number> {
   const count = await adminClient.fetch(
-    `count(*[_type == "workout" && references($id)])`,
+    `count(*[references($id)])`,
     { id: exerciseId }
   );
   return count;
 }
+
 // Base64 to Uint8Array helper (works in React Native without Buffer)
 function base64ToUint8Array(base64: string): Uint8Array {
   const binaryString = atob(base64);
@@ -204,6 +205,39 @@ function base64ToUint8Array(base64: string): Uint8Array {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes;
+}
+
+
+// Robust image upload helper using direct Fetch API
+// This avoids Sanity Client's Node-specific logic that fails in React Native
+async function uploadImageToSanity(imageBytes: Uint8Array, filename: string, contentType: string): Promise<any> {
+    const projectId = "hfe964r3";
+    const dataset = "production";
+    const token = process.env.EXPO_PUBLIC_SANITY_API_TOKEN;
+
+    if (!token) {
+        throw new Error("Missing Sanity API Token");
+    }
+
+    const url = `https://${projectId}.api.sanity.io/v2021-06-07/assets/images/${dataset}?filename=${filename}`;
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": contentType,
+        },
+        body: imageBytes as any,
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Sanity Upload Failed: ${response.status} - ${errorText}`);
+    }
+
+    const json = await response.json();
+    // Sanity returns { document: { _id: ... } }
+    return json.document;
 }
 
 export async function addExerciseToLibrary(userId: string, exercise: ExerciseData) {
@@ -221,33 +255,51 @@ export async function addExerciseToLibrary(userId: string, exercise: ExerciseDat
     return { error: "duplicate", message: "This exercise is already in your library" };
   }
 
-  // Handle image - for remote URLs, just store the URL directly without uploading
-  // This avoids React Native's binary upload limitations
+  // Handle image upload - ALWAYS upload to create a Sanity asset
+  // This ensures consistent data structure (image field) for all exercises
   let imageAssetDescriptor = undefined;
 
-  if (exercise.gifUrl) {
-    if (exercise.gifUrl.startsWith("data:")) {
-      // Only try to upload base64 images (from custom exercise creation)
-      try {
-        const base64Data = exercise.gifUrl.split(";base64,")[1];
-        const uint8Array = base64ToUint8Array(base64Data);
-        
-        const imageAsset = await adminClient.assets.upload("image", uint8Array as any, {
-          filename: `${exercise.name.replace(/[^a-zA-Z0-9]/g, "_")}.gif`,
-        });
+  // Use either the explicit gifUrl or the image passed
+  const imageUrlToUpload = exercise.gifUrl;
 
-        if (imageAsset) {
-          imageAssetDescriptor = {
-            _type: "image",
-            asset: { _ref: imageAsset._id },
-            alt: exercise.name,
-          };
-        }
-      } catch (uploadError) {
-        console.error("Image upload failed, saving exercise without image:", uploadError);
+  if (imageUrlToUpload) {
+    try {
+      let uint8Array: Uint8Array;
+      let filename: string;
+      let contentType = "image/gif"; // Default
+
+      if (imageUrlToUpload.startsWith("data:")) {
+        // Base64 handling
+        const mimeType = imageUrlToUpload.split(";")[0].split(":")[1] || "image/gif";
+        const base64Data = imageUrlToUpload.split(";base64,")[1];
+        uint8Array = base64ToUint8Array(base64Data);
+        filename = `${exercise.name.replace(/[^a-zA-Z0-9]/g, "_")}.${mimeType.split("/")[1] || "gif"}`;
+        contentType = mimeType;
+      } else {
+        // Remote URL (from Browse) handling - Fetch and convert to binary
+        const response = await fetch(imageUrlToUpload);
+        const arrayBuffer = await response.arrayBuffer();
+        uint8Array = new Uint8Array(arrayBuffer);
+        const urlFilename = imageUrlToUpload.split('/').pop()?.split('?')[0] || "image.gif";
+        filename = `remote_${urlFilename}`;
+        // Attempt to guess mime type from filename or default
+        if (filename.toLowerCase().endsWith(".png")) contentType = "image/png";
+        else if (filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")) contentType = "image/jpeg";
       }
+      
+      // Upload using our robust helper
+      const imageAsset = await uploadImageToSanity(uint8Array, filename, contentType);
+
+      if (imageAsset) {
+        imageAssetDescriptor = {
+          _type: "image",
+          asset: { _ref: imageAsset._id },
+          alt: exercise.name,
+        };
+      }
+    } catch (uploadError) {
+      console.error("Image upload failed, saving exercise without image:", uploadError);
     }
-    // For remote URLs (from browse), we don't upload - the gifUrl will be stored directly
   }
 
   // Build valid Exercise document
@@ -262,11 +314,6 @@ export async function addExerciseToLibrary(userId: string, exercise: ExerciseDat
     videoUrl: exercise.videoUrl,
     isActive: true,
   };
-
-  // Store remote gifUrl directly (for exercises from browse)
-  if (exercise.gifUrl && !exercise.gifUrl.startsWith("data:")) {
-    exerciseData.gifUrl = exercise.gifUrl;
-  }
 
   // Save to Sanity
   const saved = await adminClient.create(exerciseData);
@@ -291,22 +338,22 @@ export async function deleteExercise(id: string, userId: string, cascade: boolea
     throw new Error("Unauthorized: You can only delete your own exercises.");
   }
 
-  // Check for references first
+  // Check for references first - checking ALL referencing documents
   const references = await adminClient.fetch(
-    `*[_type == "workout" && references($id)]._id`,
+    `*[references($id)]._id`,
     { id }
   );
 
   if (references.length > 0 && !cascade) {
     // Don't attempt delete if there are references and cascade is false
-    throw new Error(`Cannot delete: Exercise is used in ${references.length} workout(s). Use cascade delete.`);
+    throw new Error(`Cannot delete: Exercise is used in ${references.length} item(s). Use cascade delete.`);
   }
 
   if (cascade && references.length > 0) {
-    // Delete referencing workouts first, then the exercise
+    // Delete referencing documents first, then the exercise
     const transaction = adminClient.transaction();
 
-    // Delete referencing workouts
+    // Delete referencing documents
     for (const refId of references) {
       transaction.delete(refId);
     }
@@ -316,7 +363,7 @@ export async function deleteExercise(id: string, userId: string, cascade: boolea
 
     await transaction.commit();
 
-    return { success: true, deletedWorkouts: references.length };
+    return { success: true, deletedReferences: references.length };
   } else {
     // No references, safe to delete directly
     await adminClient.delete(id);

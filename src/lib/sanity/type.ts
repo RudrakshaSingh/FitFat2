@@ -101,6 +101,7 @@ export type Exercise = {
     alt?: string;
     _type: "image";
   };
+
   videoUrl?: string;
   isActive?: boolean;
 };

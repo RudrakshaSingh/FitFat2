@@ -20,7 +20,9 @@ interface Exercise {
   name: string;
   description: string;
   difficulty: string;
+  displayName: string;
   image: any;
+  videoUrl?: string;
 }
 
 export default function UserLibrary() {
