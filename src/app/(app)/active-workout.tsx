@@ -6,6 +6,7 @@ import {
   TextInput,
   ActivityIndicator,
   StatusBar,
+  BackHandler,
 } from "react-native";
 import React, { useState } from "react";
 import { useStopwatch } from "react-timer-hook";
@@ -88,6 +89,39 @@ export default function ActiveWorkout() {
         }
       };
     }, [])
+  );
+
+  // Handle hardware back button / gesture back
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Show confirmation alert
+        showAlert(
+          "Leave Workout?",
+          "If you leave now, your workout will not be saved. Are you sure you want to end this workout?",
+          [
+            { text: "Stay", style: "cancel" },
+            {
+              text: "End Without Saving",
+              style: "destructive",
+              onPress: () => {
+                resetWorkout();
+                router.replace("/(app)/(tabs)/workout");
+              },
+            },
+          ]
+        );
+        return true; // Prevent default back behavior
+      };
+
+      // Add event listener for Android hardware back button
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [resetWorkout, router])
   );
 
   // Format stopwatch time
@@ -200,8 +234,8 @@ export default function ActiveWorkout() {
     // Reset the workout
     resetWorkout();
 
-    // Navigate to workout tab first, then to history
-    router.replace("/(app)/(tabs)/workout");
+    // Navigate to history to see the saved workout
+    router.replace("/(app)/(tabs)/history");
   };
 
   const saveWorkoutToDatabase = async () => {

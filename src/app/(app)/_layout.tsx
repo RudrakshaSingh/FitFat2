@@ -37,6 +37,14 @@ function Layout() {
         <Stack.Screen name="(modals)/exercise-details" options={{ headerShown: false }} />
         <Stack.Screen name="daily-workout" options={{ headerShown: false }} />
         <Stack.Screen name="edit-day-workout" options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="active-workout" 
+          options={{ 
+            headerShown: false,
+            presentation: 'fullScreenModal',
+            gestureEnabled: false, // Disable swipe-to-dismiss gesture
+          }} 
+        />
       </Stack.Protected>
 
       {/* Auth routes - only accessible when NOT signed in */}

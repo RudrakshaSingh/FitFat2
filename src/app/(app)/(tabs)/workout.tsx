@@ -89,7 +89,7 @@ export default function Workout() {
 
   const startWorkout = () => {
     resetWorkout();
-    router.push("/active-workout");
+    router.push("/(app)/active-workout");
   };
 
   const handleTodayWorkout = () => {
@@ -110,7 +110,7 @@ export default function Workout() {
 
       setWorkoutExercises(mappedExercises);
 
-      router.push("/(app)/(tabs)/active-workout");
+      router.push("/(app)/active-workout");
     } else {
       // Fallback
       router.push({
@@ -134,33 +134,76 @@ export default function Workout() {
   };
 
   return (
-    <SafeAreaView className=" flex-1 bg-gray-50">
-      {/* Main Start Workout Screen */}
-      <View className="flex-1 px-6">
-        {/* Header */}
-        <View className="pt-4 pb-6 flex-row justify-between items-start">
-          <View className="flex-1">
-            <Text className="text-3xl font-bold text-gray-900 mb-2">
-              Ready to Train?
-            </Text>
+    <SafeAreaView className="flex-1 bg-gray-50">
+      {/* Header - Fixed at top */}
+      <View className="px-6 pt-4 pb-2 flex-row justify-between items-start">
+        <View className="flex-1">
+          <Text className="text-3xl font-bold text-gray-900 mb-1">
+            Ready to Train?
+          </Text>
+          <Text className="text-base text-gray-500">
+            Start your workout session
+          </Text>
+        </View>
 
-            <Text className="text-lg text-gray-600">
-              Start your workout session
-            </Text>
+        {/* History Button */}
+        <TouchableOpacity
+          onPress={() => router.push("/history")}
+          className="bg-purple-100 w-12 h-12 rounded-full items-center justify-center"
+          activeOpacity={0.7}
+        >
+          <Ionicons name="time-outline" size={24} color="#9333EA" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Content - Pushed to bottom */}
+      <View className="flex-1 px-6 justify-end pb-6">
+        {/* Custom Workout Card */}
+        <View className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+          <View className="flex-row items-center mb-4">
+            <View className="w-11 h-11 bg-purple-100 rounded-full items-center justify-center mr-3">
+              <Ionicons name="fitness" size={22} color="#9333EA" />
+            </View>
+
+            <View>
+              <Text className="text-lg font-semibold text-gray-900">
+                Custom Workout
+              </Text>
+              <Text className="text-gray-500 text-sm">Start from scratch</Text>
+            </View>
           </View>
-
-          {/* History Button */}
+          
+          {/* Start Button */}
           <TouchableOpacity
-            onPress={() => router.push("/history")}
-            className="bg-purple-100 w-12 h-12 rounded-full items-center justify-center"
-            activeOpacity={0.7}
+            onPress={startWorkout}
+            className="bg-white border-2 border-purple-600 rounded-2xl py-3.5 items-center"
+            activeOpacity={0.6}
           >
-            <Ionicons name="time-outline" size={24} color="#9333EA" />
+            <View className="flex-row items-center">
+              <Ionicons
+                name="add-circle-outline"
+                size={22}
+                color="#9333EA"
+                style={{ marginRight: 8 }}
+              />
+              <Text className="text-purple-600 font-bold text-base">
+                Start New Workout
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
 
+        {/* Stylized Divider */}
+        <View className="flex-row items-center my-5 px-2">
+          <View className="flex-1 h-[1px] bg-gray-300" />
+          <View className="mx-4">
+            <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest">OR FOLLOW YOUR PLAN</Text>
+          </View>
+          <View className="flex-1 h-[1px] bg-gray-300" />
+        </View>
+
         {/* Today's Workout Card */}
-        <View className="bg-white rounded-3xl shadow-sm border border-gray-100 mb-5 overflow-hidden">
+        <View className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           {/* Card Header with gradient */}
           <View 
             className="px-5 py-4 flex-row items-center"
@@ -259,55 +302,6 @@ export default function Workout() {
             )}
           </View>
         </View>
-
-        {/* Stylized Divider */}
-        <View className="flex-row items-center my-2 px-4 py-2">
-          <View className="flex-1 h-[1px] bg-gray-300" />
-          <View className="mx-4">
-            <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest">OR START FRESH</Text>
-          </View>
-          <View className="flex-1 h-[1px] bg-gray-300" />
-        </View>
-      </View>
-
-      {/* Generic Start Workout Card */}
-      <View className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mx-6 mb-8">
-        <View className="flex-row items-center justify-between mb-6">
-          <View className="flex-row items-center">
-            <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mr-3">
-              <Ionicons name="fitness" size={24} color="#9333EA" />
-            </View>
-
-            <View>
-              <Text className="text-xl font-semibold text-gray-900">
-                Custom Workout
-              </Text>
-              <Text className="text-gray-500">Start from scratch</Text>
-            </View>
-          </View>
-
-          <View className="bg-green-100 px-3 py-1 rounded-full">
-            <Text className="text-green-700 font-medium text-sm">Ready</Text>
-          </View>
-        </View>
-        {/* Start Button */}
-        <TouchableOpacity
-          onPress={startWorkout}
-          className="bg-white border-2 border-purple-600 rounded-2xl py-4 items-center"
-          activeOpacity={0.6}
-        >
-          <View className="flex-row items-center">
-            <Ionicons
-              name="add-circle-outline"
-              size={22}
-              color="#9333EA"
-              style={{ marginRight: 8 }}
-            />
-            <Text className="text-purple-600 font-bold text-lg">
-              Start New Workout
-            </Text>
-          </View>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

@@ -126,7 +126,7 @@ export default function DailyWorkout() {
 
     // Navigate to active workout with the planned exercises
     router.push({
-      pathname: "/(app)/(tabs)/active-workout",
+      pathname: "/(app)/active-workout",
       params: {
         plannedExercises: JSON.stringify(dayPlan.exercises),
         workoutName: dayPlan.workoutName || `${day}'s Workout`,

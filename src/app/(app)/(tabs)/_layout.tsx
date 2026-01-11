@@ -59,17 +59,6 @@ function Layout() {
         }}
       />
       <Tabs.Screen
-        name="active-workout"
-        options={{
-          title: "Active Workout",
-          headerShown: false,
-          href: null, //will remain invisible
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="clock-circle" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="history"
         options={{
           title: "History",
