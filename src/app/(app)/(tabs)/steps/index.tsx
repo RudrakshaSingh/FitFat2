@@ -3,7 +3,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Alert,
   TextInput,
   Modal,
   Platform,
@@ -20,6 +19,8 @@ import {
   stopStepTracking,
   resetStepTracking,
 } from "../../../../services/step-tracking-service";
+import CustomAlert from "@/app/components/CustomAlert";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 export default function StepsScreen() {
   const {
@@ -32,6 +33,8 @@ export default function StepsScreen() {
     checkAndResetForNewDay,
     resetSteps,
   } = useStepStore();
+
+  const alert = useCustomAlert();
 
   const [isPedometerAvailable, setIsPedometerAvailable] = useState<
     "checking" | "available" | "unavailable"
@@ -150,7 +153,7 @@ export default function StepsScreen() {
   };
 
   const handleReset = () => {
-    Alert.alert(
+    alert.showAlert(
       "Reset Steps",
       "Are you sure you want to reset your step count to 0?",
       [
@@ -186,11 +189,11 @@ export default function StepsScreen() {
   const handleSaveGoal = () => {
     const newGoal = parseInt(goalInput);
     if (isNaN(newGoal) || newGoal < 100) {
-      Alert.alert("Invalid Goal", "Please enter a goal of at least 100 steps");
+      alert.showAlert("Invalid Goal", "Please enter a goal of at least 100 steps");
       return;
     }
     if (newGoal > 100000) {
-      Alert.alert("Invalid Goal", "Maximum goal is 100,000 steps");
+      alert.showAlert("Invalid Goal", "Maximum goal is 100,000 steps");
       return;
     }
     setDailyGoal(newGoal);
@@ -457,6 +460,15 @@ export default function StepsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alert.visible}
+        title={alert.config.title}
+        message={alert.config.message}
+        buttons={alert.config.buttons}
+        onClose={alert.hideAlert}
+      />
     </SafeAreaView>
   );
 }

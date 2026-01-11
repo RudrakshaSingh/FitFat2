@@ -19,6 +19,13 @@ export async function POST(req: Request) {
           isRestDay,
           workoutName,
           exercises[] {
+            // New format - sets array
+            sets[] {
+              reps,
+              weight,
+              weightUnit
+            },
+            // Old format support
             plannedSets,
             plannedReps,
             notes,

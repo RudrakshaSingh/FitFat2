@@ -6,7 +6,6 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  Alert,
   FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,10 +13,19 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { urlFor } from "@/lib/sanity/client";
+import CustomAlert, { CustomAlertButton } from "@/app/components/CustomAlert";
+
+interface PlannedSet {
+  reps: number;
+  weight?: number;
+  weightUnit?: string;
+}
 
 interface PlannedExercise {
-  plannedSets: number;
-  plannedReps: number;
+  sets?: PlannedSet[];
+  // Old format support
+  plannedSets?: number;
+  plannedReps?: number;
   notes?: string;
   exerciseRef: {
     _id: string;
@@ -60,6 +68,14 @@ export default function DailyWorkout() {
   const [dayPlan, setDayPlan] = useState<DayPlan | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Alert state
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    title: string;
+    message?: string;
+    buttons?: CustomAlertButton[];
+  }>({ title: "" });
+
   const dayOfWeek = day ? dayNames[day] : null;
   const workoutDate = date ? new Date(date) : new Date();
 
@@ -100,7 +116,11 @@ export default function DailyWorkout() {
 
   const handleStartWorkout = () => {
     if (!dayPlan || dayPlan.exercises.length === 0) {
-      Alert.alert("No Exercises", "Add some exercises to this day first!");
+      setAlertConfig({
+        title: "No Exercises",
+        message: "Add some exercises to this day first!",
+      });
+      setAlertVisible(true);
       return;
     }
 
@@ -150,7 +170,7 @@ export default function DailyWorkout() {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#ec4899" />
+          <ActivityIndicator size="large" color="#9333EA" />
           <Text className="text-gray-500 mt-3">Loading workout...</Text>
         </View>
       </SafeAreaView>
@@ -196,43 +216,81 @@ export default function DailyWorkout() {
           <View className="px-6 py-6">
             {/* Workout Name */}
             {dayPlan.workoutName && (
-              <View className="bg-pink-50 border border-pink-100 rounded-2xl p-4 mb-6">
-                <Text className="text-pink-600 font-bold text-lg">
+              <View className="bg-purple-50 border border-purple-100 rounded-2xl p-4 mb-6">
+                <Text className="text-purple-600 font-bold text-lg">
                   {dayPlan.workoutName}
                 </Text>
-                <Text className="text-pink-400 text-sm mt-1">
+                <Text className="text-purple-400 text-sm mt-1">
                   {dayPlan.exercises.length} exercises planned
                 </Text>
               </View>
             )}
 
             {/* Exercise List */}
-            {dayPlan.exercises.map((exercise, index) => (
-              <View
-                key={index}
-                className="bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-sm"
-              >
-                <View className="flex-row">
-                  {/* Exercise Image */}
-                  {exercise.exerciseRef?.image ? (
-                    <Image
-                      source={{ uri: urlFor(exercise.exerciseRef.image).width(200).url() }}
-                      className="w-20 h-20 rounded-xl bg-gray-200"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View className="w-20 h-20 rounded-xl bg-gray-100 items-center justify-center">
-                      <Ionicons name="barbell" size={28} color="#d1d5db" />
-                    </View>
-                  )}
+            {dayPlan.exercises.map((exercise, index) => {
+              // Handle both new sets array and old plannedSets/plannedReps format
+              const setsArray = exercise.sets || [];
+              const setCount = setsArray.length || exercise.plannedSets || 0;
+              
+              return (
+                <View
+                  key={index}
+                  className="bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-sm"
+                >
+                  <View className="flex-row mb-3">
+                    {/* Exercise Image */}
+                    {exercise.exerciseRef?.image ? (
+                      <Image
+                        source={{ uri: urlFor(exercise.exerciseRef.image).width(200).url() }}
+                        className="w-16 h-16 rounded-xl bg-gray-200"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View className="w-16 h-16 rounded-xl bg-gray-100 items-center justify-center">
+                        <Ionicons name="barbell" size={24} color="#d1d5db" />
+                      </View>
+                    )}
 
-                  {/* Exercise Info */}
-                  <View className="flex-1 ml-4 justify-center">
-                    <Text className="text-lg font-bold text-gray-900">
-                      {exercise.exerciseRef?.name || "Unknown Exercise"}
-                    </Text>
-                    
-                    <View className="flex-row items-center mt-2">
+                    {/* Exercise Info */}
+                    <View className="flex-1 ml-3 justify-center">
+                      <Text className="text-lg font-bold text-gray-900">
+                        {exercise.exerciseRef?.name || "Unknown Exercise"}
+                      </Text>
+                      <Text className="text-gray-500 text-sm">
+                        {setCount} sets planned
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Individual Sets Display */}
+                  {setsArray.length > 0 ? (
+                    <View className="bg-gray-50 rounded-xl p-3">
+                      {setsArray.map((set, setIndex) => (
+                        <View
+                          key={setIndex}
+                          className="flex-row items-center py-2 border-b border-gray-200 last:border-b-0"
+                        >
+                          <Text className="text-gray-600 font-medium w-8">
+                            {setIndex + 1}
+                          </Text>
+                          <View className="bg-purple-100 px-2 py-1 rounded-full mr-2">
+                            <Text className="text-purple-700 font-semibold text-sm">
+                              {set.reps} reps
+                            </Text>
+                          </View>
+                          {set.weight ? (
+                            <View className="bg-indigo-100 px-2 py-1 rounded-full mr-2">
+                              <Text className="text-indigo-700 font-semibold text-sm">
+                                {set.weight} {set.weightUnit || 'kg'}
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                      ))}
+                    </View>
+                  ) : exercise.plannedSets && exercise.plannedReps ? (
+                    // Old format fallback
+                    <View className="flex-row items-center">
                       <View className="bg-purple-100 px-3 py-1 rounded-full mr-2">
                         <Text className="text-purple-700 font-semibold text-sm">
                           {exercise.plannedSets} sets
@@ -244,16 +302,16 @@ export default function DailyWorkout() {
                         </Text>
                       </View>
                     </View>
+                  ) : null}
 
-                    {exercise.notes && (
-                      <Text className="text-gray-400 text-sm mt-2 italic">
-                        {exercise.notes}
-                      </Text>
-                    )}
-                  </View>
+                  {exercise.notes && (
+                    <Text className="text-gray-400 text-sm mt-3 italic">
+                      {exercise.notes}
+                    </Text>
+                  )}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         ) : (
           /* No Exercises Planned */
@@ -267,7 +325,7 @@ export default function DailyWorkout() {
             </Text>
             <TouchableOpacity
               onPress={handleEditProgram}
-              className="bg-pink-500 px-6 py-3 rounded-full"
+              className="bg-purple-600 px-6 py-3 rounded-full"
             >
               <Text className="text-white font-bold">Plan Your Workout</Text>
             </TouchableOpacity>
@@ -281,14 +339,23 @@ export default function DailyWorkout() {
           <TouchableOpacity
             onPress={handleStartWorkout}
             activeOpacity={0.9}
-            className="bg-gradient-to-r from-pink-500 to-rose-500 py-5 rounded-2xl items-center flex-row justify-center shadow-lg"
-            style={{ backgroundColor: "#ec4899" }}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 py-5 rounded-2xl items-center flex-row justify-center shadow-lg"
+            style={{ backgroundColor: "#9333EA" }}
           >
             <Ionicons name="play" size={24} color="white" />
             <Text className="text-white text-lg font-bold ml-2">Start Workout</Text>
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertVisible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={() => setAlertVisible(false)}
+      />
     </SafeAreaView>
   );
 }

@@ -89,18 +89,56 @@ export default defineType({
                       validation: (Rule) => Rule.required(),
                     }),
                     defineField({
-                      name: 'plannedSets',
+                      name: 'sets',
                       title: 'Planned Sets',
-                      type: 'number',
-                      initialValue: 3,
-                      validation: (Rule) => Rule.min(1).max(20),
-                    }),
-                    defineField({
-                      name: 'plannedReps',
-                      title: 'Planned Reps',
-                      type: 'number',
-                      initialValue: 10,
-                      validation: (Rule) => Rule.min(1).max(100),
+                      description: 'Individual sets planned for this exercise.',
+                      type: 'array',
+                      of: [
+                        defineArrayMember({
+                          type: 'object',
+                          name: 'plannedSet',
+                          title: 'Planned Set',
+                          fields: [
+                            defineField({
+                              name: 'reps',
+                              title: 'Reps',
+                              type: 'number',
+                              validation: (Rule) => Rule.required().min(1).max(100),
+                            }),
+                            defineField({
+                              name: 'weight',
+                              title: 'Target Weight',
+                              type: 'number',
+                              validation: (Rule) => Rule.min(0),
+                            }),
+                            defineField({
+                              name: 'weightUnit',
+                              title: 'Weight Unit',
+                              type: 'string',
+                              options: {
+                                list: [
+                                  {title: 'Kilograms', value: 'kg'},
+                                  {title: 'Pounds', value: 'lbs'},
+                                ],
+                              },
+                              initialValue: 'kg',
+                            }),
+                          ],
+                          preview: {
+                            select: {
+                              reps: 'reps',
+                              weight: 'weight',
+                              weightUnit: 'weightUnit',
+                            },
+                            prepare({reps, weight, weightUnit}) {
+                              const weightText = weight ? `${weight} ${weightUnit || 'kg'}` : 'Bodyweight'
+                              return {
+                                title: `${reps || 0} reps @ ${weightText}`,
+                              }
+                            },
+                          },
+                        }),
+                      ],
                     }),
                     defineField({
                       name: 'notes',
@@ -111,13 +149,13 @@ export default defineType({
                   preview: {
                     select: {
                       exerciseName: 'exerciseRef.name',
-                      sets: 'plannedSets',
-                      reps: 'plannedReps',
+                      sets: 'sets',
                     },
-                    prepare({exerciseName, sets, reps}) {
+                    prepare({exerciseName, sets}) {
+                      const setCount = sets ? sets.length : 0
                       return {
                         title: exerciseName || 'Select exercise',
-                        subtitle: `${sets || 3} sets × ${reps || 10} reps`,
+                        subtitle: `${setCount} set${setCount !== 1 ? 's' : ''} planned`,
                       }
                     },
                   },

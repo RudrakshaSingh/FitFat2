@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,10 +15,13 @@ import * as ImagePicker from "expo-image-picker";
 import { launchImageLibraryAsync, MediaType } from "expo-image-picker";
 import { useUser } from "@clerk/clerk-expo";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import CustomAlert from "@/app/components/CustomAlert";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 export default function AddCustomExercise() {
   const router = useRouter();
   const { user } = useUser();
+  const alert = useCustomAlert();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -59,7 +61,7 @@ export default function AddCustomExercise() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert("Error", "Please enter an exercise name");
+      alert.showAlert("Error", "Please enter an exercise name");
       return;
     }
 
@@ -86,17 +88,17 @@ export default function AddCustomExercise() {
       const data = await result.json();
 
       if (result.ok) {
-        Alert.alert("Success", "Exercise added successfully!", [
+        alert.showAlert("Success", "Exercise added successfully!", [
           { text: "OK", onPress: () => router.back() },
         ]);
       } else if (data.error === "duplicate") {
-        Alert.alert("Oops!", "This exercise already exists in your library.");
+        alert.showAlert("Oops!", "This exercise already exists in your library.");
       } else {
-        Alert.alert("Error", data.message || "Failed to save exercise. Try again.");
+        alert.showAlert("Error", data.message || "Failed to save exercise. Try again.");
       }
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Something went wrong. Please try again.");
+      alert.showAlert("Error", "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -238,6 +240,15 @@ export default function AddCustomExercise() {
         </TouchableOpacity>
 
       </KeyboardAwareScrollView>
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alert.visible}
+        title={alert.config.title}
+        message={alert.config.message}
+        buttons={alert.config.buttons}
+        onClose={alert.hideAlert}
+      />
     </SafeAreaView>
   );
 }

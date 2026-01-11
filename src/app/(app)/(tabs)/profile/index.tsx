@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
   TextInput,
   ActivityIndicator,
   ScrollView,
@@ -30,6 +29,8 @@ export default function Profile() {
   const { user } = useUser();
   const router = useRouter();
   const signOutAlert = useCustomAlert();
+  const validationAlert = useCustomAlert();
+  const successAlert = useCustomAlert();
 
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
@@ -67,7 +68,7 @@ export default function Profile() {
     if (value && !isNaN(Number(value))) {
       const kg = Number(value);
       if (kg > MAX_WEIGHT_KG) {
-        Alert.alert(
+        validationAlert.showAlert(
           "Limit Exceeded",
           `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
             1
@@ -89,7 +90,7 @@ export default function Profile() {
     if (value && !isNaN(Number(value))) {
       const lbs = Number(value);
       if (lbs > MAX_WEIGHT_LBS) {
-        Alert.alert(
+        validationAlert.showAlert(
           "Limit Exceeded",
           `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
             1
@@ -111,7 +112,7 @@ export default function Profile() {
     if (value && !isNaN(Number(value))) {
       const cm = Number(value);
       if (cm > MAX_HEIGHT_CM) {
-        Alert.alert(
+        validationAlert.showAlert(
           "Limit Exceeded",
           `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
             1
@@ -139,7 +140,7 @@ export default function Profile() {
       const i = Number(inches) || 0; // Treat empty as 0
 
       if (f > MAX_HEIGHT_FEET) {
-        Alert.alert(
+        validationAlert.showAlert(
           "Limit Exceeded",
           `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
             1
@@ -152,7 +153,7 @@ export default function Profile() {
       const cm = totalInches * 2.54;
 
       if (cm > MAX_HEIGHT_CM) {
-        Alert.alert(
+        validationAlert.showAlert(
           "Limit Exceeded",
           `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
             1
@@ -169,32 +170,32 @@ export default function Profile() {
 
   const validateFields = () => {
     if (!name.trim()) {
-      Alert.alert("Validation Error", "Name cannot be empty");
+      validationAlert.showAlert("Validation Error", "Name cannot be empty");
       return false;
     }
 
     const ageNum = Number(age);
     if (!age.trim() || isNaN(ageNum) || ageNum <= 0) {
-      Alert.alert("Validation Error", "Please enter a valid age");
+      validationAlert.showAlert("Validation Error", "Please enter a valid age");
       return false;
     }
     if (ageNum > MAX_AGE) {
-      Alert.alert("Validation Error", `Maximum age is ${MAX_AGE} years`);
+      validationAlert.showAlert("Validation Error", `Maximum age is ${MAX_AGE} years`);
       return false;
     }
 
     if (!gender) {
-      Alert.alert("Validation Error", "Please select a gender");
+      validationAlert.showAlert("Validation Error", "Please select a gender");
       return false;
     }
 
     const kg = Number(weightKg);
     if (!weightKg.trim() || isNaN(kg) || kg <= 0) {
-      Alert.alert("Validation Error", "Please enter a valid weight");
+      validationAlert.showAlert("Validation Error", "Please enter a valid weight");
       return false;
     }
     if (kg > MAX_WEIGHT_KG) {
-      Alert.alert(
+      validationAlert.showAlert(
         "Validation Error",
         `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
           1
@@ -205,11 +206,11 @@ export default function Profile() {
 
     const cm = Number(heightCm);
     if (!heightCm.trim() || isNaN(cm) || cm <= 0) {
-      Alert.alert("Validation Error", "Please enter a valid height");
+      validationAlert.showAlert("Validation Error", "Please enter a valid height");
       return false;
     }
     if (cm > MAX_HEIGHT_CM) {
-      Alert.alert(
+      validationAlert.showAlert(
         "Validation Error",
         `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
           1
@@ -245,9 +246,9 @@ export default function Profile() {
         },
       });
       setIsEditing(false);
-      Alert.alert("Success", "Profile updated successfully!");
+      successAlert.showAlert("Success", "Profile updated successfully!");
     } catch (error) {
-      Alert.alert("Error", "Failed to update profile. Please try again.");
+      validationAlert.showAlert("Error", "Failed to update profile. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -295,7 +296,7 @@ export default function Profile() {
     // Request permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
+      validationAlert.showAlert(
         "Permission Required",
         "Please allow access to your photo library to update your profile picture."
       );
@@ -320,11 +321,11 @@ export default function Profile() {
         const base64Image = `data:${mimeType};base64,${result.assets[0].base64}`;
 
         await user?.setProfileImage({ file: base64Image });
-        Alert.alert("Success", "Profile picture updated!");
+        successAlert.showAlert("Success", "Profile picture updated!");
       }
     } catch (error) {
       console.error("Error updating profile image:", error);
-      Alert.alert("Error", "Failed to update profile picture. Please try again.");
+      validationAlert.showAlert("Error", "Failed to update profile picture. Please try again.");
     } finally {
       setIsUploadingImage(false);
     }
@@ -537,7 +538,7 @@ export default function Profile() {
                     onChangeText={(value) => {
                       const ageNum = Number(value);
                       if (value && !isNaN(ageNum) && ageNum > MAX_AGE) {
-                        Alert.alert(
+                        validationAlert.showAlert(
                           "Limit Exceeded",
                           `Maximum age is ${MAX_AGE} years`
                         );
@@ -963,6 +964,24 @@ export default function Profile() {
         message={signOutAlert.config.message}
         buttons={signOutAlert.config.buttons}
         onClose={signOutAlert.hideAlert}
+      />
+
+      {/* Custom Alert for Validation */}
+      <CustomAlert
+        visible={validationAlert.visible}
+        title={validationAlert.config.title}
+        message={validationAlert.config.message}
+        buttons={validationAlert.config.buttons}
+        onClose={validationAlert.hideAlert}
+      />
+
+      {/* Custom Alert for Success */}
+      <CustomAlert
+        visible={successAlert.visible}
+        title={successAlert.config.title}
+        message={successAlert.config.message}
+        buttons={successAlert.config.buttons}
+        onClose={successAlert.hideAlert}
       />
     </SafeAreaView>
   );

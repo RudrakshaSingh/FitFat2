@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   View,
   TextInput,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,6 +11,8 @@ import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import CustomAlert from "@/app/components/CustomAlert";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 const MAX_WEIGHT_KG = 200;
 const MAX_WEIGHT_LBS = 440.9; // 200 kg in lbs
@@ -22,6 +23,7 @@ const MAX_AGE = 150;
 export default function Onboarding() {
   const { user } = useUser();
   const router = useRouter();
+  const alert = useCustomAlert();
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +46,7 @@ export default function Onboarding() {
     if (value && !isNaN(Number(value))) {
       const kg = Number(value);
       if (kg > MAX_WEIGHT_KG) {
-        Alert.alert(
+        alert.showAlert(
           "Limit Exceeded",
           `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
             1
@@ -66,7 +68,7 @@ export default function Onboarding() {
     if (value && !isNaN(Number(value))) {
       const lbs = Number(value);
       if (lbs > MAX_WEIGHT_LBS) {
-        Alert.alert(
+        alert.showAlert(
           "Limit Exceeded",
           `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
             1
@@ -88,7 +90,7 @@ export default function Onboarding() {
     if (value && !isNaN(Number(value))) {
       const cm = Number(value);
       if (cm > MAX_HEIGHT_CM) {
-        Alert.alert(
+        alert.showAlert(
           "Limit Exceeded",
           `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
             1
@@ -116,7 +118,7 @@ export default function Onboarding() {
       const i = Number(inches) || 0; // Treat empty as 0
 
       if (f > MAX_HEIGHT_FEET) {
-        Alert.alert(
+        alert.showAlert(
           "Limit Exceeded",
           `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
             1
@@ -129,7 +131,7 @@ export default function Onboarding() {
       const cm = totalInches * 2.54;
 
       if (cm > MAX_HEIGHT_CM) {
-        Alert.alert(
+        alert.showAlert(
           "Limit Exceeded",
           `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
             1
@@ -147,35 +149,35 @@ export default function Onboarding() {
   const handleNext = () => {
     if (step === 1) {
       if (!name.trim()) {
-        Alert.alert("Error", "Please enter your name");
+        alert.showAlert("Error", "Please enter your name");
         return;
       }
       setStep(2);
     } else if (step === 2) {
       const ageNum = Number(age);
       if (!age.trim() || isNaN(ageNum) || ageNum <= 0) {
-        Alert.alert("Error", "Please enter a valid age");
+        alert.showAlert("Error", "Please enter a valid age");
         return;
       }
       if (ageNum > MAX_AGE) {
-        Alert.alert("Error", `Maximum age is ${MAX_AGE} years`);
+        alert.showAlert("Error", `Maximum age is ${MAX_AGE} years`);
         return;
       }
       setStep(3);
     } else if (step === 3) {
       if (!gender) {
-        Alert.alert("Error", "Please select your gender");
+        alert.showAlert("Error", "Please select your gender");
         return;
       }
       setStep(4);
     } else if (step === 4) {
       const kg = Number(weightKg);
       if (!weightKg.trim() || isNaN(kg) || kg <= 0) {
-        Alert.alert("Error", "Please enter a valid weight");
+        alert.showAlert("Error", "Please enter a valid weight");
         return;
       }
       if (kg > MAX_WEIGHT_KG) {
-        Alert.alert(
+        alert.showAlert(
           "Error",
           `Maximum weight is ${MAX_WEIGHT_KG} kg (${MAX_WEIGHT_LBS.toFixed(
             1
@@ -187,11 +189,11 @@ export default function Onboarding() {
     } else if (step === 5) {
       const cm = Number(heightCm);
       if (!heightCm.trim() || isNaN(cm) || cm <= 0) {
-        Alert.alert("Error", "Please enter a valid height");
+        alert.showAlert("Error", "Please enter a valid height");
         return;
       }
       if (cm > MAX_HEIGHT_CM) {
-        Alert.alert(
+        alert.showAlert(
           "Error",
           `Maximum height is ${MAX_HEIGHT_FEET} feet (${MAX_HEIGHT_CM.toFixed(
             1
@@ -202,7 +204,7 @@ export default function Onboarding() {
       setStep(6);
     } else if (step === 6) {
       if (!goal.trim()) {
-        Alert.alert("Error", "Please share your goal with us");
+        alert.showAlert("Error", "Please share your goal with us");
         return;
       }
       handleComplete();
@@ -238,7 +240,7 @@ export default function Onboarding() {
       router.replace("/(tabs)");
     } catch (error) {
       console.error("Onboarding error:", error);
-      Alert.alert("Error", "Failed to save profile. Please try again.");
+      alert.showAlert("Error", "Failed to save profile. Please try again.");
       setIsLoading(false);
     }
   };
@@ -334,7 +336,7 @@ export default function Onboarding() {
                   onChangeText={(value) => {
                     const ageNum = Number(value);
                     if (value && !isNaN(ageNum) && ageNum > MAX_AGE) {
-                      Alert.alert(
+                      alert.showAlert(
                         "Limit Exceeded",
                         `Maximum age is ${MAX_AGE} years`
                       );
@@ -746,6 +748,15 @@ export default function Onboarding() {
           )}
         </TouchableOpacity>
       </KeyboardAwareScrollView>
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alert.visible}
+        title={alert.config.title}
+        message={alert.config.message}
+        buttons={alert.config.buttons}
+        onClose={alert.hideAlert}
+      />
     </SafeAreaView>
   );
 }

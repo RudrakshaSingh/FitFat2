@@ -3,7 +3,6 @@ import {
   Text,
   Platform,
   TouchableOpacity,
-  Alert,
   TextInput,
   ActivityIndicator,
   StatusBar,
@@ -14,6 +13,7 @@ import { useWorkoutStore, WorkoutSet } from "store/workout-store";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import ExerciseSelectionModal from "@/app/components/ExerciseSelectionModal";
+import CustomAlert, { CustomAlertButton } from "@/app/components/CustomAlert";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { defineQuery } from "groq";
 import { client } from "@/lib/sanity/client";
@@ -36,6 +36,19 @@ export default function ActiveWorkout() {
     setWorkoutExercises,
     resetWorkout,
   } = useWorkoutStore();
+
+  // Alert state
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    title: string;
+    message?: string;
+    buttons?: CustomAlertButton[];
+  }>({ title: "" });
+
+  const showAlert = (title: string, message?: string, buttons?: CustomAlertButton[]) => {
+    setAlertConfig({ title, message, buttons });
+    setAlertVisible(true);
+  };
 
   // Get weight unit from user's Clerk metadata (default to kg)
   const userWeightUnit = (user?.unsafeMetadata?.weightUnit as "kg" | "lbs") || "kg";
@@ -85,7 +98,7 @@ export default function ActiveWorkout() {
   };
 
   const cancelWorkout = () => {
-    Alert.alert(
+    showAlert(
       "Cancel Workout",
       "Are you sure you want to cancel the workout?",
       [
@@ -126,14 +139,14 @@ export default function ActiveWorkout() {
   const saveWorkout = () => {
     // Validate workout before completing
     if (workoutExercises.length === 0) {
-      Alert.alert("No Exercises", "Please add at least one exercise to your workout.");
+      showAlert("No Exercises", "Please add at least one exercise to your workout.");
       return;
     }
 
     // Check for exercises with no sets
     const exercisesWithNoSets = workoutExercises.filter(ex => ex.sets.length === 0);
     if (exercisesWithNoSets.length > 0) {
-      Alert.alert(
+      showAlert(
         "Missing Sets",
         `Please add at least one set to: ${exercisesWithNoSets.map(ex => ex.name).join(", ")}`
       );
@@ -159,7 +172,7 @@ export default function ActiveWorkout() {
     });
 
     if (incompleteSets.length > 0) {
-      Alert.alert(
+      showAlert(
         "Incomplete Sets",
         `Please complete the following:\n\n${incompleteSets.slice(0, 5).join("\n")}${incompleteSets.length > 5 ? `\n...and ${incompleteSets.length - 5} more` : ""}`
       );
@@ -167,7 +180,7 @@ export default function ActiveWorkout() {
     }
 
     // All valid - confirm completion
-    Alert.alert(
+    showAlert(
       "Complete Workout",
       "Are you sure you want to complete the workout?",
       [
@@ -181,7 +194,7 @@ export default function ActiveWorkout() {
     const saved = await saveWorkoutToDatabase();
 
     if (saved) {
-      Alert.alert("Workout Saved", "Your workout has been saved successfully!");
+      showAlert("Workout Saved", "Your workout has been saved successfully!");
     }
 
     // Reset the workout
@@ -248,7 +261,7 @@ export default function ActiveWorkout() {
       );
 
       if (validExercises.length === 0) {
-        Alert.alert(
+        showAlert(
           "No Completed Sets",
           "Please complete at least one set before saving the workout."
         );
@@ -277,7 +290,7 @@ export default function ActiveWorkout() {
       return true;
     } catch (error) {
       console.error("Error saving workout:", error);
-      Alert.alert("Save Failed", "Failed to save workout. Please try again.");
+      showAlert("Save Failed", "Failed to save workout. Please try again.");
       return false;
     } finally {
       setIsSaving(false);
@@ -616,6 +629,15 @@ export default function ActiveWorkout() {
       <ExerciseSelectionModal
         visible={showExerciseSelection}
         onClose={() => setShowExerciseSelection(false)}
+      />
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertVisible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={() => setAlertVisible(false)}
       />
     </View>
   );

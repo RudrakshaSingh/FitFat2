@@ -150,28 +150,7 @@
                         },
                         "optional": true
                       },
-                      "plannedSets": {
-                        "type": "objectAttribute",
-                        "value": {
-                          "type": "number"
-                        },
-                        "optional": true
-                      },
-                      "plannedReps": {
-                        "type": "objectAttribute",
-                        "value": {
-                          "type": "number"
-                        },
-                        "optional": true
-                      },
-                      "notes": {
-                        "type": "objectAttribute",
-                        "value": {
-                          "type": "string"
-                        },
-                        "optional": true
-                      },
-                      "setDetails": {
+                      "sets": {
                         "type": "objectAttribute",
                         "value": {
                           "type": "array",
@@ -181,14 +160,31 @@
                               "reps": {
                                 "type": "objectAttribute",
                                 "value": {
-                                  "type": "string"
+                                  "type": "number"
                                 },
                                 "optional": true
                               },
                               "weight": {
                                 "type": "objectAttribute",
                                 "value": {
-                                  "type": "string"
+                                  "type": "number"
+                                },
+                                "optional": true
+                              },
+                              "weightUnit": {
+                                "type": "objectAttribute",
+                                "value": {
+                                  "type": "union",
+                                  "of": [
+                                    {
+                                      "type": "string",
+                                      "value": "kg"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "value": "lbs"
+                                    }
+                                  ]
                                 },
                                 "optional": true
                               },
@@ -212,6 +208,13 @@
                               }
                             }
                           }
+                        },
+                        "optional": true
+                      },
+                      "notes": {
+                        "type": "objectAttribute",
+                        "value": {
+                          "type": "string"
                         },
                         "optional": true
                       },

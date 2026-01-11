@@ -10,7 +10,6 @@ import {
   Image,
   Linking,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useUser } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +30,7 @@ export default function ExerciseDetail() {
   const { id } = useLocalSearchParams();
   const { user } = useUser();
   const deleteExerciseAlert = useCustomAlert();
+  const errorAlert = useCustomAlert();
 
   useEffect(() => {
     // Fetch exercise details based on the id
@@ -119,7 +119,7 @@ export default function ExerciseDetail() {
         }
     } catch (error) {
         console.error("Check references error:", error);
-        Alert.alert("Error", "Could not verify exercise usage.");
+        errorAlert.showAlert("Error", "Could not verify exercise usage.");
     }
   };
 
@@ -137,12 +137,12 @@ export default function ExerciseDetail() {
         if (response.ok) {
             router.back();
         } else {
-            Alert.alert("Error", data.error || "Failed to delete exercise");
+            errorAlert.showAlert("Error", data.error || "Failed to delete exercise");
             setLoading(false);
         }
     } catch (error) {
         console.error("Delete error:", error);
-        Alert.alert("Error", "Something went wrong.");
+        errorAlert.showAlert("Error", "Something went wrong.");
         setLoading(false);
     }
   };
@@ -356,6 +356,15 @@ export default function ExerciseDetail() {
         message={deleteExerciseAlert.config.message}
         buttons={deleteExerciseAlert.config.buttons}
         onClose={deleteExerciseAlert.hideAlert}
+      />
+
+      {/* Custom Alert for Errors */}
+      <CustomAlert
+        visible={errorAlert.visible}
+        title={errorAlert.config.title}
+        message={errorAlert.config.message}
+        buttons={errorAlert.config.buttons}
+        onClose={errorAlert.hideAlert}
       />
     </SafeAreaView>
   );

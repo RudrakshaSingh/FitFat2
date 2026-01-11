@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  Alert,
   TextInput,
   Switch,
 } from "react-native";
@@ -15,6 +14,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { client, urlFor } from "@/lib/sanity/client";
+import CustomAlert, { CustomAlertButton } from "@/app/components/CustomAlert";
 
 interface Exercise {
   _id: string;
@@ -23,12 +23,18 @@ interface Exercise {
   difficulty?: string;
 }
 
+interface PlannedSet {
+  id: string;
+  reps: string;
+  weight: string;
+  weightUnit: "kg" | "lbs";
+}
+
 interface PlannedExercise {
-  exerciseRef: string; // Just the ID for saving
-  plannedSets: number | string;
-  plannedReps: number | string;
+  id: string;
+  exerciseRef: string;
+  sets: PlannedSet[];
   notes?: string;
-  // For display
   exercise?: Exercise;
 }
 
@@ -46,6 +52,26 @@ export default function EditDayWorkout() {
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [programId, setProgramId] = useState<string | null>(null);
   const [allDays, setAllDays] = useState<any[]>([]);
+
+  // Refs for input focus on validation errors
+  const inputRefs = useRef<Map<string, TextInput | null>>(new Map());
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Alert state
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    title: string;
+    message?: string;
+    buttons?: CustomAlertButton[];
+  }>({ title: "" });
+
+  const showAlert = (title: string, message?: string, buttons?: CustomAlertButton[]) => {
+    setAlertConfig({ title, message, buttons });
+    setAlertVisible(true);
+  };
+
+  // Get weight unit from user's Clerk metadata (default to kg)
+  const userWeightUnit = (user?.unsafeMetadata?.weightUnit as "kg" | "lbs") || "kg";
 
   const dayTitle = day ? day.charAt(0).toUpperCase() + day.slice(1) : "Day";
 
@@ -75,18 +101,43 @@ export default function EditDayWorkout() {
 
         const dayPlan = data.program.days?.find((d: any) => d.dayOfWeek === day);
         if (dayPlan) {
-            setWorkoutName(dayPlan.workoutName || "");
-            setIsRestDay(dayPlan.isRestDay || false);
+          setWorkoutName(dayPlan.workoutName || "");
+          setIsRestDay(dayPlan.isRestDay || false);
+
+          // Map exercises with their data - handle both old and new format
+          const mappedExercises = (dayPlan.exercises || []).map((ex: any) => {
+            // Check if using new sets array format or old plannedSets/plannedReps format
+            let sets: PlannedSet[] = [];
             
-            // Map exercises with their data
-            const mappedExercises = (dayPlan.exercises || []).map((ex: any) => ({
+            if (ex.sets && Array.isArray(ex.sets)) {
+              // New format - map sets array
+              sets = ex.sets.map((s: any) => ({
+                id: Math.random().toString(),
+                reps: s.reps?.toString() || "",
+                weight: s.weight?.toString() || "",
+                weightUnit: s.weightUnit || userWeightUnit,
+              }));
+            } else if (ex.plannedSets && ex.plannedReps) {
+              // Old format - convert to sets array
+              for (let i = 0; i < ex.plannedSets; i++) {
+                sets.push({
+                  id: Math.random().toString(),
+                  reps: ex.plannedReps?.toString() || "",
+                  weight: "",
+                  weightUnit: userWeightUnit,
+                });
+              }
+            }
+
+            return {
+              id: Math.random().toString(),
               exerciseRef: ex.exerciseRef?._id,
-              plannedSets: ex.plannedSets || 3,
-              plannedReps: ex.plannedReps || 10,
+              sets,
               notes: ex.notes || "",
               exercise: ex.exerciseRef,
-            }));
-            setExercises(mappedExercises);
+            };
+          });
+          setExercises(mappedExercises);
         }
       }
     } catch (error) {
@@ -106,9 +157,9 @@ export default function EditDayWorkout() {
     setExercises([
       ...exercises,
       {
+        id: Math.random().toString(),
         exerciseRef: exercise._id,
-        plannedSets: 3,
-        plannedReps: 10,
+        sets: [], // Start with no sets, user adds them one by one
         notes: "",
         exercise,
       },
@@ -116,35 +167,69 @@ export default function EditDayWorkout() {
     setShowExercisePicker(false);
   };
 
-  const handleRemoveExercise = (index: number) => {
-    const updated = [...exercises];
-    updated.splice(index, 1);
+  const handleRemoveExercise = (exerciseId: string) => {
+    const updated = exercises.filter((ex) => ex.id !== exerciseId);
     setExercises(updated);
   };
 
-  const handleUpdateExercise = (
-    index: number,
-    field: "plannedSets" | "plannedReps" | "notes",
-    value: any
+  const handleAddSet = (exerciseId: string) => {
+    const newSetId = Math.random().toString();
+    setExercises((prevExercises) =>
+      prevExercises.map((ex) =>
+        ex.id === exerciseId
+          ? {
+              ...ex,
+              sets: [
+                ...ex.sets,
+                {
+                  id: newSetId,
+                  reps: "",
+                  weight: "",
+                  weightUnit: userWeightUnit,
+                },
+              ],
+            }
+          : ex
+      )
+    );
+    // Focus on the new reps input after state update
+    setTimeout(() => {
+      const refKey = `${exerciseId}-${newSetId}-reps`;
+      inputRefs.current.get(refKey)?.focus();
+    }, 100);
+  };
+
+  const handleDeleteSet = (exerciseId: string, setId: string) => {
+    setExercises((prevExercises) =>
+      prevExercises.map((ex) =>
+        ex.id === exerciseId
+          ? {
+              ...ex,
+              sets: ex.sets.filter((s) => s.id !== setId),
+            }
+          : ex
+      )
+    );
+  };
+
+  const handleUpdateSet = (
+    exerciseId: string,
+    setId: string,
+    field: "reps" | "weight",
+    value: string
   ) => {
-    const updated = [...exercises];
-    
-    if (field === "plannedSets" || field === "plannedReps") {
-      // Allow empty string or valid numbers only
-      if (value === "") {
-        updated[index] = { ...updated[index], [field]: "" };
-      } else {
-        // Only update if it's a valid number
-        const num = parseInt(value);
-        if (!isNaN(num)) {
-          updated[index] = { ...updated[index], [field]: value }; // Keep as string for input
-        }
-      }
-    } else {
-      updated[index] = { ...updated[index], [field]: value };
-    }
-    
-    setExercises(updated);
+    setExercises((prevExercises) =>
+      prevExercises.map((ex) =>
+        ex.id === exerciseId
+          ? {
+              ...ex,
+              sets: ex.sets.map((s) =>
+                s.id === setId ? { ...s, [field]: value } : s
+              ),
+            }
+          : ex
+      )
+    );
   };
 
   const handleSave = async () => {
@@ -152,31 +237,55 @@ export default function EditDayWorkout() {
     setSaving(true);
 
     try {
+      // Validate exercises with sets - collect first error for focus
+      let firstErrorRef: string | null = null;
+      
+      for (const ex of exercises) {
+        if (ex.sets.length === 0) {
+          showAlert("No Sets", `Please add at least one set to ${ex.exercise?.name || "all exercises"}`);
+          setSaving(false);
+          return;
+        }
+        for (const set of ex.sets) {
+          const repsNum = parseInt(set.reps);
+          if (!set.reps || isNaN(repsNum) || repsNum <= 0) {
+            if (!firstErrorRef) {
+              firstErrorRef = `${ex.id}-${set.id}-reps`;
+            }
+          }
+        }
+      }
+      
+      // Focus on first error if any
+      if (firstErrorRef) {
+        const errorInput = inputRefs.current.get(firstErrorRef);
+        if (errorInput) {
+          errorInput.focus();
+        }
+        showAlert("Missing Reps", "Please fill in the reps for all sets.");
+        setSaving(false);
+        return;
+      }
+
       const updatedDayPlan = {
         dayOfWeek: day,
         isRestDay,
         workoutName: workoutName || undefined,
-        exercises: exercises.map((ex) => {
-          const sets = Number(ex.plannedSets);
-          const reps = Number(ex.plannedReps);
-
-          if (!sets || !reps) {
-            throw new Error(`Please fill in sets and reps for ${ex.exercise?.name || "all exercises"}`);
-          }
-
-          return {
-            exerciseRef: ex.exerciseRef,
-            plannedSets: sets,
-            plannedReps: reps,
-            notes: ex.notes || undefined,
-          };
-        }),
+        exercises: exercises.map((ex) => ({
+          exerciseRef: ex.exerciseRef,
+          sets: ex.sets.map((s) => ({
+            reps: parseInt(s.reps, 10) || 1,
+            weight: s.weight ? parseFloat(s.weight) : undefined,
+            weightUnit: s.weightUnit,
+          })),
+          notes: ex.notes || undefined,
+        })),
       };
 
       // Update or create the days array
       let updatedDays = [...allDays];
       const existingIndex = updatedDays.findIndex((d: any) => d.dayOfWeek === day);
-      
+
       if (existingIndex >= 0) {
         updatedDays[existingIndex] = updatedDayPlan;
       } else {
@@ -189,23 +298,23 @@ export default function EditDayWorkout() {
         body: JSON.stringify({
           userId: user.id,
           program: {
-             name: "My Weekly Program",
-             days: updatedDays
+            name: "My Weekly Program",
+            days: updatedDays,
           },
         }),
       });
 
       if (response.ok) {
-        Alert.alert("Saved!", "Your workout plan has been updated.", [
+        showAlert("Saved!", "Your workout plan has been updated.", [
           { text: "OK", onPress: () => router.back() },
         ]);
       } else {
         const data = await response.json();
-        Alert.alert("Error", data.message || "Failed to save");
+        showAlert("Error", data.message || "Failed to save");
       }
     } catch (error: any) {
       console.error("Save error:", error);
-      Alert.alert("Error", error.message || "Something went wrong");
+      showAlert("Error", error.message || "Something went wrong");
     } finally {
       setSaving(false);
     }
@@ -214,7 +323,7 @@ export default function EditDayWorkout() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#ec4899" />
+        <ActivityIndicator size="large" color="#9333EA" />
       </SafeAreaView>
     );
   }
@@ -232,7 +341,7 @@ export default function EditDayWorkout() {
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving}
-          className="bg-pink-500 px-4 py-2 rounded-full"
+          className="bg-purple-600 px-4 py-2 rounded-full"
         >
           {saving ? (
             <ActivityIndicator size="small" color="white" />
@@ -242,7 +351,12 @@ export default function EditDayWorkout() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        ref={scrollViewRef}
+        className="flex-1 px-6 pt-6" 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Workout Name */}
         <View className="mb-6">
           <Text className="text-sm font-semibold text-gray-700 mb-2">Workout Name</Text>
@@ -276,10 +390,10 @@ export default function EditDayWorkout() {
               <Text className="text-lg font-bold text-gray-900">Exercises</Text>
               <TouchableOpacity
                 onPress={() => setShowExercisePicker(true)}
-                className="bg-pink-100 px-4 py-2 rounded-full flex-row items-center"
+                className="bg-purple-100 px-4 py-2 rounded-full flex-row items-center"
               >
-                <Ionicons name="add" size={18} color="#ec4899" />
-                <Text className="text-pink-600 font-semibold ml-1">Add</Text>
+                <Ionicons name="add" size={18} color="#9333EA" />
+                <Text className="text-purple-600 font-semibold ml-1">Add</Text>
               </TouchableOpacity>
             </View>
 
@@ -292,11 +406,12 @@ export default function EditDayWorkout() {
                 </Text>
               </View>
             ) : (
-              exercises.map((ex, index) => (
+              exercises.map((ex) => (
                 <View
-                  key={index}
-                  className="bg-white rounded-2xl p-4 mb-4 border border-gray-100"
+                  key={ex.id}
+                  className="bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-sm"
                 >
+                  {/* Exercise Header */}
                   <View className="flex-row items-center mb-3">
                     {ex.exercise?.image ? (
                       <Image
@@ -311,34 +426,96 @@ export default function EditDayWorkout() {
                     <Text className="flex-1 ml-3 font-bold text-gray-800">
                       {ex.exercise?.name || "Exercise"}
                     </Text>
-                    <TouchableOpacity onPress={() => handleRemoveExercise(index)}>
+                    <TouchableOpacity onPress={() => handleRemoveExercise(ex.id)}>
                       <Ionicons name="trash-outline" size={20} color="#ef4444" />
                     </TouchableOpacity>
                   </View>
 
-                  <View className="flex-row gap-3">
-                    <View className="flex-1">
-                      <Text className="text-xs text-gray-500 mb-1">Sets</Text>
-                      <TextInput
-                        className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-center"
-                        keyboardType="number-pad"
-                        value={ex.plannedSets.toString()}
-                        onChangeText={(v) =>
-                          handleUpdateExercise(index, "plannedSets", v)
-                        }
-                      />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-xs text-gray-500 mb-1">Reps</Text>
-                      <TextInput
-                        className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-center"
-                        keyboardType="number-pad"
-                        value={ex.plannedReps.toString()}
-                        onChangeText={(v) =>
-                          handleUpdateExercise(index, "plannedReps", v)
-                        }
-                      />
-                    </View>
+                  {/* Sets Section */}
+                  <View className="bg-gray-50 rounded-xl p-3">
+                    <Text className="text-sm font-semibold text-gray-700 mb-2">
+                      {ex.sets.length} Sets
+                    </Text>
+
+                    {/* Set List */}
+                    {ex.sets.map((set, setIndex) => (
+                      <View
+                        key={set.id}
+                        className="bg-white rounded-lg p-3 mb-2 border border-gray-200"
+                      >
+                        <View className="flex-row items-start">
+                          {/* Set Number */}
+                          <View className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center mr-2 mt-6">
+                            <Text className="text-gray-600 font-bold text-sm">
+                              {setIndex + 1}
+                            </Text>
+                          </View>
+
+                          {/* Reps Input */}
+                          <View className="flex-1 mx-1">
+                            <Text className="text-xs text-gray-500 mb-1 font-medium ml-1">Reps</Text>
+                            <TextInput
+                              ref={(ref) => {
+                                inputRefs.current.set(`${ex.id}-${set.id}-reps`, ref);
+                              }}
+                              className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center text-gray-800 text-lg font-medium"
+                              keyboardType="number-pad"
+                              value={set.reps}
+                              onChangeText={(v) =>
+                                handleUpdateSet(ex.id, set.id, "reps", v)
+                              }
+                              placeholder="0"
+                              placeholderTextColor="#d1d5db"
+                            />
+                          </View>
+
+                          {/* Weight Input */}
+                          <View className="flex-1 mx-1">
+                            <Text className="text-xs text-gray-500 mb-1 font-medium ml-1">
+                              Weight ({set.weightUnit})
+                            </Text>
+                            <TextInput
+                              ref={(ref) => {
+                                inputRefs.current.set(`${ex.id}-${set.id}-weight`, ref);
+                              }}
+                              className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center text-gray-800 text-lg font-medium"
+                              keyboardType="numeric"
+                              value={set.weight}
+                              onChangeText={(v) =>
+                                handleUpdateSet(ex.id, set.id, "weight", v)
+                              }
+                              placeholder="-"
+                              placeholderTextColor="#d1d5db"
+                            />
+                          </View>
+
+                          {/* Delete Set Button */}
+                          <TouchableOpacity
+                            onPress={() => handleDeleteSet(ex.id, set.id)}
+                            className="w-10 h-10 rounded-xl items-center justify-center ml-1 bg-red-50 mt-6 pt-0.5 border border-red-100"
+                          >
+                            <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+
+                    {/* Add Set Button */}
+                    <TouchableOpacity
+                      onPress={() => handleAddSet(ex.id)}
+                      className="bg-purple-50 border-2 border-dashed border-purple-300 rounded-lg py-3 items-center mt-2"
+                      activeOpacity={0.8}
+                    >
+                      <View className="flex-row items-center">
+                        <Ionicons
+                          name="add"
+                          size={16}
+                          color="#9333EA"
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text className="text-purple-600 font-medium">Add Set</Text>
+                      </View>
+                    </TouchableOpacity>
                   </View>
                 </View>
               ))
@@ -396,6 +573,15 @@ export default function EditDayWorkout() {
           </View>
         </View>
       )}
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertVisible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={() => setAlertVisible(false)}
+      />
     </SafeAreaView>
   );
 }

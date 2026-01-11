@@ -1,5 +1,35 @@
 import { adminClient } from "@/lib/sanity/client";
 
+// Helper to generate unique keys for Sanity arrays
+const generateKey = () => Math.random().toString(36).substr(2, 9);
+
+// Format days array with proper Sanity keys
+const formatDaysForSanity = (days: any[]) => {
+  return days.map((day) => ({
+    _key: generateKey(),
+    _type: "dayPlan",
+    dayOfWeek: day.dayOfWeek,
+    isRestDay: day.isRestDay || false,
+    workoutName: day.workoutName,
+    exercises: (day.exercises || []).map((ex: any) => ({
+      _key: generateKey(),
+      _type: "plannedExercise",
+      exerciseRef: {
+        _type: "reference",
+        _ref: ex.exerciseRef,
+      },
+      sets: (ex.sets || []).map((set: any) => ({
+        _key: generateKey(),
+        _type: "plannedSet",
+        reps: set.reps || 1,
+        weight: set.weight || undefined,
+        weightUnit: set.weightUnit || "kg",
+      })),
+      notes: ex.notes,
+    })),
+  }));
+};
+
 export async function POST(req: Request) {
   try {
     const { userId, program } = await req.json();
@@ -7,6 +37,9 @@ export async function POST(req: Request) {
     if (!userId) {
       return Response.json({ error: "Missing userId" }, { status: 400 });
     }
+
+    // Format days with proper Sanity structure
+    const formattedDays = formatDaysForSanity(program.days || []);
 
     // Check if user already has an active program
     const existingProgram = await adminClient.fetch(
@@ -20,7 +53,7 @@ export async function POST(req: Request) {
         .patch(existingProgram._id)
         .set({
           name: program.name || existingProgram.name,
-          days: program.days,
+          days: formattedDays,
         })
         .commit();
 
@@ -32,7 +65,7 @@ export async function POST(req: Request) {
         userId,
         name: program.name || "My Weekly Program",
         isActive: true,
-        days: program.days || [],
+        days: formattedDays,
       });
 
       return Response.json({ success: true, id: newProgram._id, created: true });

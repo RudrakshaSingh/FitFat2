@@ -33,15 +33,14 @@ export type WeeklyProgram = {
         _weak?: boolean;
         [internalGroqTypeReferenceTo]?: "exercise";
       };
-      plannedSets?: number;
-      plannedReps?: number;
-      notes?: string;
-      setDetails?: Array<{
-        reps?: string;
-        weight?: string;
+      sets?: Array<{
+        reps?: number;
+        weight?: number;
+        weightUnit?: "kg" | "lbs";
         _type: "plannedSet";
         _key: string;
       }>;
+      notes?: string;
       _type: "plannedExercise";
       _key: string;
     }>;
