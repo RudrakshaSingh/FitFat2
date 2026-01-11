@@ -225,14 +225,6 @@ export type Slug = {
 
 export type AllSanitySchemaTypes = WeeklyProgram | Workout | Exercise | SanityImageCrop | SanityImageHotspot | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint | Slug;
 export declare const internalGroqTypeReferenceTo: unique symbol;
-// Source: ../src/app/(app)/(tabs)/active-workout.tsx
-// Variable: findExerciseQuery
-// Query: * [_type == "exercise" && name == $name][0] {_id,name}
-export type FindExerciseQueryResult = {
-  _id: string;
-  name: string | null;
-} | null;
-
 // Source: ../src/app/(app)/(tabs)/history/index.tsx
 // Variable: getWorkoutsQuery
 // Query: *[_type == "workout" && userId == $userId]     | order(date desc) {      _id,      date,      duration,      exercises[] {        exerciseRef-> {          _id,          name        },        sets[] {          reps,          weight,          weightUnit,          _type,          _key        },        _type,        _key      }    }
@@ -284,12 +276,20 @@ export type GetWorkoutRecordQueryResult = {
   }> | null;
 } | null;
 
+// Source: ../src/app/(app)/active-workout.tsx
+// Variable: findExerciseQuery
+// Query: * [_type == "exercise" && name == $name][0] {_id,name}
+export type FindExerciseQueryResult = {
+  _id: string;
+  name: string | null;
+} | null;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    "* [_type == \"exercise\" && name == $name][0] {\n_id,\nname\n}": FindExerciseQueryResult;
     "\n  *[_type == \"workout\" && userId == $userId] \n    | order(date desc) {\n      _id,\n      date,\n      duration,\n      exercises[] {\n        exerciseRef-> {\n          _id,\n          name\n        },\n        sets[] {\n          reps,\n          weight,\n          weightUnit,\n          _type,\n          _key\n        },\n        _type,\n        _key\n      }\n    }\n": GetWorkoutsQueryResult;
     "\n  *[_type == \"workout\" && _id == $workoutId][0]{\n    _id,\n    _type,\n    _createdAt,\n    date,\n    duration,\n    exercises[] {\n      exerciseRef-> {\n        _id,\n        name,\n        description\n      },\n      sets[] {\n        reps,\n        weight,\n        weightUnit,\n        _type,\n        _key\n      },\n      _type,\n      _key\n    }\n  }\n": GetWorkoutRecordQueryResult;
+    "* [_type == \"exercise\" && name == $name][0] {\n_id,\nname\n}": FindExerciseQueryResult;
   }
 }
