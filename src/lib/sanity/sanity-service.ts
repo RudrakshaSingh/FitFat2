@@ -321,6 +321,90 @@ export async function addExerciseToLibrary(userId: string, exercise: ExerciseDat
   return { success: true, id: saved._id };
 }
 
+export async function updateExercise(id: string, userId: string, exercise: ExerciseData) {
+  if (!id || !userId) {
+    throw new Error("Missing id or userId");
+  }
+
+  // Verify ownership
+  const doc = await adminClient.getDocument(id);
+  if (!doc) {
+    throw new Error("Exercise not found");
+  }
+
+  if ((doc as any).userId !== userId) {
+    throw new Error("Unauthorized: You can only edit your own exercises.");
+  }
+
+  // Handle image upload - ALWAYS upload to create a Sanity asset
+  let imageAssetDescriptor = undefined;
+  const imageUrlToUpload = exercise.gifUrl;
+
+  if (imageUrlToUpload) {
+     // If it's a Sanity CDN URL (existing image), we might skip upload if we were smart,
+     // but reusing the logic ensures consistency if they pasted a new URL.
+     // Optimization: Check if it's already a sanity asset URL we own? 
+     // For now, simpler to just re-process if it looks like a new input or if we want to be safe.
+     // Actually, if the UI passes the existing Sanity URL, fetching it and re-uploading effectively "duplicates" it
+     // but creates a new asset ref. Sanity handles duplicates well but it wastes space.
+     // Better: The UI should only pass `gifUrl` if it CHANGED. 
+     // But `add-custom-exercise` state logic is simple.
+     
+    try {
+      let uint8Array: Uint8Array;
+      let filename: string;
+      let contentType = "image/gif"; 
+
+      if (imageUrlToUpload.startsWith("data:")) {
+        // Base64 handling
+        const mimeType = imageUrlToUpload.split(";")[0].split(":")[1] || "image/gif";
+        const base64Data = imageUrlToUpload.split(";base64,")[1];
+        uint8Array = base64ToUint8Array(base64Data);
+        filename = `${exercise.name.replace(/[^a-zA-Z0-9]/g, "_")}.${mimeType.split("/")[1] || "gif"}`;
+        contentType = mimeType;
+      } else {
+        // Remote URL handling
+        const response = await fetch(imageUrlToUpload);
+        const arrayBuffer = await response.arrayBuffer();
+        uint8Array = new Uint8Array(arrayBuffer);
+        const urlFilename = imageUrlToUpload.split('/').pop()?.split('?')[0] || "image.gif";
+        filename = `remote_${urlFilename}`;
+        if (filename.toLowerCase().endsWith(".png")) contentType = "image/png";
+        else if (filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")) contentType = "image/jpeg";
+      }
+      
+      const imageAsset = await uploadImageToSanity(uint8Array, filename, contentType);
+
+      if (imageAsset) {
+        imageAssetDescriptor = {
+          _type: "image",
+          asset: { _ref: imageAsset._id },
+          alt: exercise.name,
+        };
+      }
+    } catch (uploadError) {
+      console.error("Image upload failed during update:", uploadError);
+    }
+  }
+
+  // Build patch
+  const patch: any = {
+    name: exercise.name,
+    target: exercise.target || undefined,
+    description: exercise.description,
+    difficulty: exercise.difficulty || "beginner",
+    videoUrl: exercise.videoUrl,
+  };
+
+  if (imageAssetDescriptor) {
+    patch.image = imageAssetDescriptor;
+  }
+
+  await adminClient.patch(id).set(patch).commit();
+
+  return { success: true };
+}
+
 export async function deleteExercise(id: string, userId: string, cascade: boolean = false) {
   if (!id || !userId) {
     throw new Error("Missing id or userId");

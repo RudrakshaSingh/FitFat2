@@ -1,7 +1,7 @@
 import { Exercise } from "@/lib/sanity/type";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -34,24 +34,26 @@ export default function ExerciseDetail() {
   const deleteExerciseAlert = useCustomAlert();
   const errorAlert = useCustomAlert();
 
-  useEffect(() => {
-    // Fetch exercise details based on the id
-    const fetchExercise = async () => {
-      try {
-        const query = `*[_type == "exercise" && _id == $id][0]`;
-        const exerciseData = await client.fetch(query, { id });
-        setExercise(exerciseData);
-      } catch (error) {
-        console.error("Error fetching exercise:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-        fetchExercise();
-    }
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+        // Fetch exercise details based on the id
+        const fetchExercise = async () => {
+          try {
+            const query = `*[_type == "exercise" && _id == $id][0]`;
+            const exerciseData = await client.fetch(query, { id });
+            setExercise(exerciseData);
+          } catch (error) {
+            console.error("Error fetching exercise:", error);
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        if (id) {
+            fetchExercise();
+        }
+    }, [id])
+  );
 
   const getAIGuidance = async () => {
     if (!exercise) return;
@@ -170,12 +172,30 @@ export default function ExerciseDetail() {
         </TouchableOpacity>
 
         {exercise?.userId === user?.id && (
-            <TouchableOpacity
-            onPress={handleDelete}
-            className="h-10 w-10 bg-red-500/80 rounded-full items-center justify-center backdrop-blur-md"
-            >
-            <Ionicons name="trash-outline" size={20} color="white" />
-            </TouchableOpacity>
+            <View className="flex-row gap-3">
+                <TouchableOpacity
+                    onPress={() => {
+                        const editData = {
+                            ...exercise,
+                            imageUrl: exercise?.image ? urlFor(exercise.image.asset!._ref).url() : undefined
+                        };
+                        router.push({
+                            pathname: "/(app)/user-library/add-custom-exercise",
+                            params: { exercise: JSON.stringify(editData) }
+                        });
+                    }}
+                    className="h-10 w-10 bg-blue-500/80 rounded-full items-center justify-center backdrop-blur-md"
+                >
+                    <Ionicons name="pencil" size={20} color="white" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    onPress={handleDelete}
+                    className="h-10 w-10 bg-red-500/80 rounded-full items-center justify-center backdrop-blur-md"
+                >
+                    <Ionicons name="trash-outline" size={20} color="white" />
+                </TouchableOpacity>
+            </View>
         )}
       </View>
 

@@ -1,10 +1,17 @@
-# FitFat2
+# FitFat2 🏋️‍♂️
 
-FitFat2 is the upgraded, more intelligent version of the original FitFat fitness application, redesigned with a modern technology stack and a significantly enhanced user experience. Built using React Native, Expo, TypeScript, and NativeWind for Tailwind styling, the app delivers a clean, fast, and responsive interface across devices. Content is managed through Sanity, while Clerk provides secure and seamless user authentication.
+> A mobile fitness app with AI-powered coaching, built using React Native and Expo.
 
-A core highlight of FitFat2 is its integration with OpenAI, which introduces real-time AI coaching inside the app. Users can receive detailed exercise instructions, guidance on correct form for every step of their fitness journey. This AI-driven layer makes the experience more interactive, adaptive, and supportive compared to traditional fitness apps.
+A cross-platform fitness application that combines workout tracking with intelligent coaching. Unlike traditional fitness apps that simply log exercises, this app integrates OpenAI to provide real-time guidance on exercise form and technique during workouts.
 
-FitFat2 expands on the first version by offering smoother navigation, improved performance, organized workout categories, saved routines, progress tracking, and a refined user interface. With its combination of advanced technologies and intelligent fitness coaching, FitFat2 provides a smarter, more personalized, and highly engaging fitness experience designed to help users stay consistent and achieve their goals more effectively.
+**Key Highlights:**
+- **AI Coach:** Get instant, personalized tips on form and technique for any exercise
+- **Custom Workout Builder:** Design and save your own weekly training programs
+- **Exercise Library:** Browse a categorized collection of exercises with detailed instructions
+- **Active Workout Mode:** Track sets, reps, and rest periods with a built-in timer
+- **Step Counter:** Monitor daily steps with start/stop/reset controls
+- **Workout History:** Review past sessions and track progress over time
+- **Onboarding Flow:** Personalized setup to tailor the experience to user goals
 
 ## 🛠 Tech Stack
 
@@ -15,7 +22,6 @@ FitFat2 expands on the first version by offering smoother navigation, improved p
 - **Clerk** (Authentication)
 - **Sanity CMS** (Content Management)
 - **OpenAI API** (AI Exercise Coaching)
-- **Cloudinary** (Image Uploads)
 
 ## ✨ Features
 
@@ -26,7 +32,6 @@ FitFat2 expands on the first version by offering smoother navigation, improved p
 - 📂 Saved routines & quick access workouts
 - 🎨 Beautiful UI with NativeWind
 - 📱 Smooth navigation with Expo Router
-- ☁️ Cloud image handling with Cloudinary
 - 🧩 Dynamic CMS-driven content (Sanity)
 - 💾 Local caching for faster performance
 

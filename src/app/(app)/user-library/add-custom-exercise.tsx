@@ -10,18 +10,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { launchImageLibraryAsync, MediaType } from "expo-image-picker";
 import { useUser } from "@clerk/clerk-expo";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { addExerciseToLibrary } from "@/lib/sanity/sanity-service";
+import { addExerciseToLibrary, updateExercise } from "@/lib/sanity/sanity-service";
 import CustomAlert from "@/app/components/CustomAlert";
 import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 export default function AddCustomExercise() {
   const router = useRouter();
   const { user } = useUser();
+  const params = useLocalSearchParams();
   const alert = useCustomAlert();
 
   const [name, setName] = useState("");
@@ -31,6 +32,42 @@ export default function AddCustomExercise() {
   const [videoUrl, setVideoUrl] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [exerciseId, setExerciseId] = useState<string | null>(null);
+
+  // Initialize from params if editing
+  React.useEffect(() => {
+    if (params.exercise) {
+      try {
+        const exerciseData = JSON.parse(params.exercise as string);
+        setName(exerciseData.name || "");
+        setDescription(exerciseData.description || "");
+        setDifficulty(exerciseData.difficulty || "beginner");
+        setTarget(exerciseData.target || "");
+        setVideoUrl(exerciseData.videoUrl || "");
+        
+        // Handle image - if it's a Sanity asset reference
+        if (exerciseData.image?.asset?._ref) {
+           // We can't easily display the Sanity ref as a local URI without building the URL
+           // But we need to store it so we know there's an image.
+           // For simplicity, we might just leave the image preview blank or fetch the URL.
+           // Ideally we pass the full resolved object with 'imageUrl' or similar from the previous screen.
+           // If 'gifUrl' property existed (from our previous fix), it would be there.
+           // user-library/[id] has access to urlFor.
+        }
+        
+        // If the previous screen passed a resolved 'imageUrl' in the json
+        if (exerciseData.imageUrl) {
+            setImage(exerciseData.imageUrl);
+        }
+
+        setExerciseId(exerciseData._id);
+        setIsEditing(true);
+      } catch (e) {
+        console.error("Failed to parse exercise param", e);
+      }
+    }
+  }, [params.exercise]);
 
   // Common target muscles
   const targetMuscles = [
@@ -80,20 +117,35 @@ export default function AddCustomExercise() {
         gifUrl: image || undefined,
       };
 
-      const result = await addExerciseToLibrary(user!.id, exercise);
-
-      if (result.success) {
-        alert.showAlert("Success", "Exercise added successfully!", [
-          { text: "OK", onPress: () => router.back() },
-        ]);
-      } else if (result.error === "duplicate") {
-        alert.showAlert("Oops!", "This exercise already exists in your library.");
+      if (isEditing && exerciseId) {
+        // Update existing
+        const result = await updateExercise(exerciseId, user!.id, exercise);
+        
+        if (result.success) {
+            alert.showAlert("Success", "Exercise updated successfully!", [
+                { text: "OK", onPress: () => router.back() }, // Go back to details
+            ]);
+        } else {
+             alert.showAlert("Error", "Failed to update exercise.");
+        }
       } else {
-        alert.showAlert("Error", result.message || "Failed to save exercise. Try again.");
+          // Create new
+          const result = await addExerciseToLibrary(user!.id, exercise);
+    
+          if (result.success) {
+            alert.showAlert("Success", "Exercise added successfully!", [
+              { text: "OK", onPress: () => router.back() },
+            ]);
+          } else if (result.error === "duplicate") {
+            alert.showAlert("Oops!", "This exercise already exists in your library.");
+          } else {
+            alert.showAlert("Error", result.message || "Failed to save exercise. Try again.");
+          }
       }
-    } catch (error) {
+
+    } catch (error: any) {
       console.error(error);
-      alert.showAlert("Error", "Something went wrong. Please try again.");
+      alert.showAlert("Error", error.message || "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -105,10 +157,21 @@ export default function AddCustomExercise() {
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 mr-2">
             <Ionicons name="close" size={24} color="#1f2937" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-800">Add Exercise</Text>
+        <Text className="text-xl font-bold text-gray-800">{isEditing ? "Edit Exercise" : "Add Exercise"}</Text>
       </View>
 
-      <KeyboardAwareScrollView className="flex-1 px-6 pt-6">
+      <KeyboardAwareScrollView
+        className="flex-1 px-6 pt-6"
+        enableOnAndroid={true}
+        extraScrollHeight={150}
+        extraHeight={150}
+        keyboardOpeningTime={0}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          paddingBottom: 100,
+          flexGrow: 1,
+        }}
+      >
         {/* Name */}
         <View className="mb-6">
           <Text className="text-sm font-semibold text-gray-700 mb-2">Name</Text>
@@ -230,7 +293,7 @@ export default function AddCustomExercise() {
             {submitting ? (
                 <ActivityIndicator color="white" />
             ) : (
-                <Text className="text-white text-center font-bold text-lg">Save Exercise</Text>
+                <Text className="text-white text-center font-bold text-lg">{isEditing ? "Update Exercise" : "Save Exercise"}</Text>
             )}
         </TouchableOpacity>
 

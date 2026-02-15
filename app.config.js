@@ -3,8 +3,8 @@ export default {
     scheme: "acme",
     userInterfaceStyle: "light",
     orientation: "default",
-    name: "FitFat2",
-    slug: "FitFat2",
+    name: "FitFat",
+    slug: "FitFat",
     icon: "./assets/app.png",
     splash: {
       image: "./assets/app.png",
